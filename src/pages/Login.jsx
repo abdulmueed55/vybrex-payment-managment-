@@ -1,0 +1,63 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+const Login = () => {
+  const [phone, setPhone] = useState('');
+  const navigate = useNavigate();
+
+  const handleSendOtp = () => {
+    if (phone.length >= 9) {
+      navigate('/otp');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#0f172a] flex items-center justify-center px-4">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-[#0f172a]">PayPro</h1>
+          <p className="text-gray-500 mt-1 text-sm">Yandex Driver Portal</p>
+        </div>
+
+        {/* Title */}
+        <h2 className="text-xl font-semibold text-gray-800 mb-6">Login to your account</h2>
+
+        {/* Phone Input */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Phone Number
+          </label>
+          <div className="flex border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
+            <span className="bg-gray-100 px-4 py-3 text-gray-600 font-medium border-r border-gray-300">
+              +995
+            </span>
+            <input
+              type="tel"
+              placeholder="555 123 456"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="flex-1 px-4 py-3 outline-none text-gray-800"
+            />
+          </div>
+        </div>
+
+        {/* Button */}
+        <button
+          onClick={handleSendOtp}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition duration-200 mt-2"
+        >
+          Send OTP
+        </button>
+
+        {/* Footer */}
+        <p className="text-center text-xs text-gray-400 mt-6">
+          © 2026 PayPro.ge — Powered by Yandex
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default Login;
