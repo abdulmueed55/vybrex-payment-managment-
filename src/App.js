@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Otp from './pages/Otp';
 import Dashboard from './pages/Dashboard';
 import Withdrawal from './pages/Withdrawal';
+import Parks from './pages/Parks';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Route path="/otp" element={<Otp />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/withdrawal" element={<Withdrawal />} />
+        <Route path="/parks" element={<Parks />} />
       </Routes>
     </Router>
   );
