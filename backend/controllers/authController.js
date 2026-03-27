@@ -52,6 +52,7 @@ const sendOtp = async (req, res) => {
     );
 
     // TODO: Send OTP via SMS service
+    console.log(`OTP for ${phone}: ${otp_code}`);
     res.json({ message: "OTP sent successfully", otp: otp_code });
   } catch (err) {
     console.error("Send OTP error:", err.message);
