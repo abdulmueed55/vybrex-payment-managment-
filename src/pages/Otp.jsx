@@ -61,26 +61,24 @@ const Otp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a] flex items-center justify-center px-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+    <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center px-4" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <div className="bg-white rounded-xl p-8 w-full max-w-md" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
 
-        {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-[#0f172a]">PayPro</h1>
-          <p className="text-gray-500 mt-1 text-sm">Yandex Driver Portal</p>
+          <h1 className="text-3xl font-extrabold text-[#0A0A0A] tracking-tight">PayPro</h1>
+          <p className="text-[#6B6B6B] mt-1 text-sm font-medium">Yandex Driver Portal</p>
         </div>
 
-        <h2 className="text-xl font-semibold text-gray-800 mb-2">Enter OTP Code</h2>
-        <p className="text-gray-500 text-sm mb-6">We sent a 6-digit code to {phone}</p>
+        <h2 className="text-lg font-semibold text-[#0A0A0A] mb-2">Enter OTP Code</h2>
+        <p className="text-[#6B6B6B] text-sm mb-6">We sent a 6-digit code to {phone}</p>
 
         {error && (
-          <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg mb-4">
+          <div className="bg-red-50 text-[#DC2626] text-sm px-4 py-3 rounded-xl mb-4 border border-red-100">
             {error}
           </div>
         )}
 
-        {/* OTP Boxes */}
-        <div className="flex justify-between gap-2 mb-6">
+        <div className="flex justify-between gap-3 mb-6">
           {otp.map((digit, index) => (
             <input
               key={index}
@@ -89,33 +87,31 @@ const Otp = () => {
               maxLength={1}
               value={digit}
               onChange={(e) => handleChange(e.target.value, index)}
-              className="w-12 h-12 text-center text-xl font-bold border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+              className="w-12 h-14 text-center text-xl font-bold border-2 border-[#E8E8E4] rounded-xl focus:border-[#0A0A0A] focus:outline-none bg-[#FAF9F6] text-[#0A0A0A] transition"
             />
           ))}
         </div>
 
-        {/* Timer */}
         <div className="text-center mb-6">
           {timer > 0 ? (
-            <p className="text-gray-500 text-sm">Resend OTP in <span className="text-blue-600 font-semibold">{timer}s</span></p>
+            <p className="text-[#6B6B6B] text-sm">Resend OTP in <span className="text-[#0A0A0A] font-semibold">{timer}s</span></p>
           ) : (
-            <button className="text-blue-600 font-semibold text-sm" onClick={handleResend}>
+            <button className="text-[#0A0A0A] font-semibold text-sm hover:underline" onClick={handleResend}>
               Resend OTP
             </button>
           )}
         </div>
 
-        {/* Verify Button */}
         <button
           onClick={handleVerify}
           disabled={loading || otp.join('').length !== 6}
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 rounded-lg transition duration-200"
+          className="w-full bg-[#0A0A0A] hover:bg-[#1a1a1a] disabled:bg-[#a0a0a0] text-white font-semibold py-3 rounded-xl transition duration-200 text-sm"
         >
           {loading ? 'Verifying...' : 'Verify & Login'}
         </button>
 
-        <p className="text-center text-xs text-gray-400 mt-6">
-          &copy; 2026 PayPro.ge — Powered by Yandex
+        <p className="text-center text-xs text-[#6B6B6B] mt-6">
+          &copy; 2026 PayPro.ge
         </p>
       </div>
     </div>
