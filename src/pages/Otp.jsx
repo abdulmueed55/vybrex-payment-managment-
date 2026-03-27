@@ -1,10 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { verifyOtp, sendOtp } from '../api/auth';
 
 const Otp = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [timer, setTimer] = useState(60);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const phone = localStorage.getItem('phone');
+
+  useEffect(() => {
+    if (!phone) {
+      navigate('/');
+    }
+  }, [phone, navigate]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -22,8 +33,31 @@ const Otp = () => {
     }
   };
 
-  const handleVerify = () => {
-    navigate('/dashboard');
+  const handleVerify = async () => {
+    const otpCode = otp.join('');
+    if (otpCode.length !== 6) return;
+    setError('');
+    setLoading(true);
+    try {
+      const res = await verifyOtp(phone, otpCode);
+      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('driver', JSON.stringify(res.data.driver));
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.error || 'OTP verification failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    try {
+      await sendOtp(phone);
+      setTimer(60);
+      setError('');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to resend OTP');
+    }
   };
 
   return (
@@ -37,7 +71,13 @@ const Otp = () => {
         </div>
 
         <h2 className="text-xl font-semibold text-gray-800 mb-2">Enter OTP Code</h2>
-        <p className="text-gray-500 text-sm mb-6">We sent a 6-digit code to your phone</p>
+        <p className="text-gray-500 text-sm mb-6">We sent a 6-digit code to {phone}</p>
+
+        {error && (
+          <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg mb-4">
+            {error}
+          </div>
+        )}
 
         {/* OTP Boxes */}
         <div className="flex justify-between gap-2 mb-6">
@@ -59,7 +99,7 @@ const Otp = () => {
           {timer > 0 ? (
             <p className="text-gray-500 text-sm">Resend OTP in <span className="text-blue-600 font-semibold">{timer}s</span></p>
           ) : (
-            <button className="text-blue-600 font-semibold text-sm" onClick={() => setTimer(60)}>
+            <button className="text-blue-600 font-semibold text-sm" onClick={handleResend}>
               Resend OTP
             </button>
           )}
@@ -68,13 +108,14 @@ const Otp = () => {
         {/* Verify Button */}
         <button
           onClick={handleVerify}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition duration-200"
+          disabled={loading || otp.join('').length !== 6}
+          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 rounded-lg transition duration-200"
         >
-          Verify & Login
+          {loading ? 'Verifying...' : 'Verify & Login'}
         </button>
 
         <p className="text-center text-xs text-gray-400 mt-6">
-          © 2026 PayPro.ge — Powered by Yandex
+          &copy; 2026 PayPro.ge — Powered by Yandex
         </p>
       </div>
     </div>

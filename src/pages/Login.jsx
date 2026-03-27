@@ -1,13 +1,26 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { sendOtp } from '../api/auth';
 
 const Login = () => {
   const [phone, setPhone] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSendOtp = () => {
-    if (phone.length >= 9) {
+  const handleSendOtp = async () => {
+    if (phone.length < 9) return;
+    setError('');
+    setLoading(true);
+    try {
+      const fullPhone = '+995' + phone;
+      await sendOtp(fullPhone);
+      localStorage.setItem('phone', fullPhone);
       navigate('/otp');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to send OTP');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -23,6 +36,12 @@ const Login = () => {
 
         {/* Title */}
         <h2 className="text-xl font-semibold text-gray-800 mb-6">Login to your account</h2>
+
+        {error && (
+          <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg mb-4">
+            {error}
+          </div>
+        )}
 
         {/* Phone Input */}
         <div className="mb-4">
@@ -46,14 +65,15 @@ const Login = () => {
         {/* Button */}
         <button
           onClick={handleSendOtp}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition duration-200 mt-2"
+          disabled={loading || phone.length < 9}
+          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 rounded-lg transition duration-200 mt-2"
         >
-          Send OTP
+          {loading ? 'Sending...' : 'Send OTP'}
         </button>
 
         {/* Footer */}
         <p className="text-center text-xs text-gray-400 mt-6">
-          © 2026 PayPro.ge — Powered by Yandex
+          &copy; 2026 PayPro.ge — Powered by Yandex
         </p>
       </div>
     </div>
