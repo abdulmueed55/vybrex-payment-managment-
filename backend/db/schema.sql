@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS withdrawals (
   amount DECIMAL(10, 2) NOT NULL,
   bank_name VARCHAR(100) NOT NULL,
   account_number VARCHAR(50) NOT NULL,
+  commission_amount DECIMAL(10, 2) DEFAULT 0,
   status VARCHAR(20) DEFAULT 'pending',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -48,6 +49,7 @@ CREATE TABLE IF NOT EXISTS admins (
   id SERIAL PRIMARY KEY,
   username VARCHAR(50) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
+  commission_rate DECIMAL(5, 2) DEFAULT 5.00,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -69,3 +71,18 @@ CREATE TABLE IF NOT EXISTS referrals (
 
 ALTER TABLE drivers ADD COLUMN IF NOT EXISTS park_id INTEGER REFERENCES parks(id);
 ALTER TABLE drivers ADD COLUMN IF NOT EXISTS referral_code VARCHAR(20) UNIQUE;
+
+CREATE TABLE IF NOT EXISTS bank_accounts (
+  id SERIAL PRIMARY KEY,
+  driver_id INTEGER REFERENCES drivers(id) ON DELETE CASCADE,
+  bank_name VARCHAR(100) NOT NULL,
+  account_number VARCHAR(50) NOT NULL,
+  is_verified BOOLEAN DEFAULT false,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE admins ADD COLUMN IF NOT EXISTS commission_rate DECIMAL(5, 2) DEFAULT 5.00;
+ALTER TABLE withdrawals ADD COLUMN IF NOT EXISTS commission_amount DECIMAL(10, 2) DEFAULT 0;
+
+-- Default admin (password: Admin@123)
+INSERT INTO admins (username, password_hash) VALUES ('admin', '$2b$10$xf7L/KHMV6mkHBedVrpkgeLmvLYg73Nf3jishjho79MUBlFvCizUG') ON CONFLICT (username) DO NOTHING;

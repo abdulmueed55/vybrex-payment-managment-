@@ -108,7 +108,6 @@ const rejectWithdrawal = async (req, res) => {
 
     await client.query("BEGIN");
 
-    // Refund the amount back to driver balance
     await client.query(
       "UPDATE drivers SET balance = balance + $1 WHERE id = $2",
       [withdrawal.rows[0].amount, withdrawal.rows[0].driver_id]
@@ -154,7 +153,6 @@ const adjustBalance = async (req, res) => {
 
     await pool.query("UPDATE drivers SET balance = $1 WHERE id = $2", [newBalance.toFixed(2), id]);
 
-    // Log the adjustment as a transaction
     await pool.query(
       "INSERT INTO transactions (driver_id, type, amount, description) VALUES ($1, $2, $3, $4)",
       [id, amount >= 0 ? "credit" : "debit", Math.abs(amount).toFixed(2), description || "Admin balance adjustment"]
@@ -172,4 +170,80 @@ const adjustBalance = async (req, res) => {
   }
 };
 
-module.exports = { adminLogin, getAllDrivers, getAllWithdrawals, approveWithdrawal, rejectWithdrawal, adjustBalance };
+// Commission rate
+const getCommissionRate = async (req, res) => {
+  try {
+    const result = await pool.query("SELECT commission_rate FROM admins LIMIT 1");
+    res.json({ commission_rate: parseFloat(result.rows[0]?.commission_rate || 5) });
+  } catch (err) {
+    console.error("Get commission rate error:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+const updateCommissionRate = async (req, res) => {
+  try {
+    const { commission_rate } = req.body;
+    if (commission_rate === undefined || commission_rate < 0 || commission_rate > 100) {
+      return res.status(400).json({ error: "Commission rate must be between 0 and 100" });
+    }
+    await pool.query("UPDATE admins SET commission_rate = $1", [commission_rate]);
+    res.json({ message: "Commission rate updated", commission_rate: parseFloat(commission_rate) });
+  } catch (err) {
+    console.error("Update commission rate error:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// Bank accounts management
+const getAllBankAccounts = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT ba.*, d.name AS driver_name, d.phone AS driver_phone
+       FROM bank_accounts ba
+       JOIN drivers d ON ba.driver_id = d.id
+       ORDER BY ba.created_at DESC`
+    );
+    res.json({ bank_accounts: result.rows });
+  } catch (err) {
+    console.error("Get bank accounts error:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+const verifyBankAccount = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      "UPDATE bank_accounts SET is_verified = true WHERE id = $1 RETURNING *",
+      [id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Bank account not found" });
+    }
+    res.json({ message: "Bank account verified", bank_account: result.rows[0] });
+  } catch (err) {
+    console.error("Verify bank account error:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+const rejectBankAccount = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query("DELETE FROM bank_accounts WHERE id = $1 RETURNING *", [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Bank account not found" });
+    }
+    res.json({ message: "Bank account rejected and removed" });
+  } catch (err) {
+    console.error("Reject bank account error:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+module.exports = {
+  adminLogin, getAllDrivers, getAllWithdrawals, approveWithdrawal,
+  rejectWithdrawal, adjustBalance, getCommissionRate, updateCommissionRate,
+  getAllBankAccounts, verifyBankAccount, rejectBankAccount,
+};

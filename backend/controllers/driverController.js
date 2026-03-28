@@ -93,4 +93,54 @@ const linkYandexId = async (req, res) => {
   }
 };
 
-module.exports = { updateProfile, changePassword, getReferralCode, joinPark, getReferrals, linkYandexId };
+// Bank accounts
+const addBankAccount = async (req, res) => {
+  try {
+    const { bank_name, account_number } = req.body;
+    if (!bank_name || !account_number) return res.status(400).json({ error: "Bank name and account number are required" });
+
+    const existing = await pool.query(
+      "SELECT id FROM bank_accounts WHERE driver_id = $1 AND account_number = $2",
+      [req.driver.id, account_number]
+    );
+    if (existing.rows.length > 0) return res.status(400).json({ error: "This account is already added" });
+
+    const result = await pool.query(
+      "INSERT INTO bank_accounts (driver_id, bank_name, account_number) VALUES ($1, $2, $3) RETURNING *",
+      [req.driver.id, bank_name, account_number]
+    );
+    res.status(201).json({ message: "Bank account added, pending verification", bank_account: result.rows[0] });
+  } catch (err) {
+    console.error("Add bank account error:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+const getBankAccounts = async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM bank_accounts WHERE driver_id = $1 ORDER BY created_at DESC",
+      [req.driver.id]
+    );
+    res.json({ bank_accounts: result.rows });
+  } catch (err) {
+    console.error("Get bank accounts error:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+const deleteBankAccount = async (req, res) => {
+  try {
+    const result = await pool.query(
+      "DELETE FROM bank_accounts WHERE id = $1 AND driver_id = $2 RETURNING *",
+      [req.params.id, req.driver.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: "Bank account not found" });
+    res.json({ message: "Bank account removed" });
+  } catch (err) {
+    console.error("Delete bank account error:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+module.exports = { updateProfile, changePassword, getReferralCode, joinPark, getReferrals, linkYandexId, addBankAccount, getBankAccounts, deleteBankAccount };
