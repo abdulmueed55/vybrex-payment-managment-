@@ -6,6 +6,7 @@ const Login = () => {
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
+  const [yandexId, setYandexId] = useState('');
   const [isRegister, setIsRegister] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -38,7 +39,7 @@ const Login = () => {
     setLoading(true);
     try {
       const fullPhone = '+995' + phone;
-      await register(name, fullPhone, password);
+      await register(name, fullPhone, password, yandexId || undefined);
       setSuccess('Registration successful! Sending OTP...');
       await sendOtp(fullPhone);
       localStorage.setItem('phone', fullPhone);
@@ -112,6 +113,19 @@ const Login = () => {
               placeholder="Create a password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              className="w-full border border-[#E8E8E4] rounded-xl px-4 py-3 outline-none text-[#0A0A0A] bg-[#FAF9F6] text-sm focus:border-[#0A0A0A] transition"
+            />
+          </div>
+        )}
+
+        {isRegister && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-[#0A0A0A] mb-2">Yandex Driver ID <span className="text-[#6B6B6B] font-normal">(optional)</span></label>
+            <input
+              type="text"
+              placeholder="Your Yandex Fleet driver ID"
+              value={yandexId}
+              onChange={(e) => setYandexId(e.target.value)}
               className="w-full border border-[#E8E8E4] rounded-xl px-4 py-3 outline-none text-[#0A0A0A] bg-[#FAF9F6] text-sm focus:border-[#0A0A0A] transition"
             />
           </div>

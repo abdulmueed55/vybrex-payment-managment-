@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sidebar } from './Dashboard';
-import { getDriverProfile, updateProfile, changePassword, getReferralCode } from '../api/driver';
+import { getDriverProfile, updateProfile, changePassword, getReferralCode, linkYandexId } from '../api/driver';
 import { getBalance, getEarnings } from '../api/earnings';
 import { getWithdrawals } from '../api/withdrawal';
 
@@ -15,6 +15,8 @@ const Profile = () => {
   const [copied, setCopied] = useState(false);
   const [pwForm, setPwForm] = useState({ current: '', new: '', confirm: '' });
   const [showPw, setShowPw] = useState(false);
+  const [yandexIdInput, setYandexIdInput] = useState('');
+  const [editingYandex, setEditingYandex] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
 
   useEffect(() => {
@@ -62,6 +64,19 @@ const Profile = () => {
       setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     } catch (err) {
       setMessage({ text: err.response?.data?.error || 'Failed', type: 'error' });
+    }
+  };
+
+  const handleLinkYandex = async () => {
+    if (!yandexIdInput.trim()) { setMessage({ text: 'Please enter your Yandex Driver ID', type: 'error' }); return; }
+    try {
+      await linkYandexId(yandexIdInput.trim());
+      setProfile({ ...profile, yandex_driver_id: yandexIdInput.trim() });
+      setEditingYandex(false);
+      setMessage({ text: 'Yandex Driver ID linked successfully', type: 'success' });
+      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
+    } catch (err) {
+      setMessage({ text: err.response?.data?.error || 'Failed to link Yandex ID', type: 'error' });
     }
   };
 
@@ -114,9 +129,23 @@ const Profile = () => {
                 <span className="text-[#6B6B6B]">Joined</span>
                 <span className="text-[#0A0A0A] font-medium">{new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
               </div>
-              <div className="flex justify-between py-2 border-b border-[#E8E8E4]">
+              <div className="flex justify-between items-center py-2 border-b border-[#E8E8E4]">
                 <span className="text-[#6B6B6B]">Yandex ID</span>
-                <span className="text-[#0A0A0A] font-medium">{profile.yandex_driver_id || 'Not linked'}</span>
+                {editingYandex ? (
+                  <div className="flex gap-2">
+                    <input type="text" value={yandexIdInput} onChange={(e) => setYandexIdInput(e.target.value)}
+                      placeholder="Enter Yandex Driver ID"
+                      className="border border-[#E8E8E4] rounded-lg px-3 py-1.5 text-sm text-[#0A0A0A] bg-[#FAF9F6] focus:border-[#0A0A0A] outline-none w-44" />
+                    <button onClick={handleLinkYandex} className="bg-[#0A0A0A] text-white text-xs px-3 py-1.5 rounded-lg">Save</button>
+                    <button onClick={() => setEditingYandex(false)} className="text-[#6B6B6B] text-xs px-2">Cancel</button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#0A0A0A] font-medium">{profile.yandex_driver_id || 'Not linked'}</span>
+                    <button onClick={() => { setEditingYandex(true); setYandexIdInput(profile.yandex_driver_id || ''); }}
+                      className="text-[#6B6B6B] text-xs hover:text-[#0A0A0A]">{profile.yandex_driver_id ? 'Edit' : 'Link'}</button>
+                  </div>
+                )}
               </div>
               <div className="flex justify-between py-2">
                 <span className="text-[#6B6B6B]">Current Balance</span>

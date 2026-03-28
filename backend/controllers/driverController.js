@@ -80,4 +80,17 @@ const getReferrals = async (req, res) => {
   }
 };
 
-module.exports = { updateProfile, changePassword, getReferralCode, joinPark, getReferrals };
+const linkYandexId = async (req, res) => {
+  try {
+    const { yandex_driver_id } = req.body;
+    if (!yandex_driver_id) return res.status(400).json({ error: "Yandex Driver ID is required" });
+
+    await pool.query("UPDATE drivers SET yandex_driver_id = $1 WHERE id = $2", [yandex_driver_id, req.driver.id]);
+    res.json({ message: "Yandex Driver ID linked successfully" });
+  } catch (err) {
+    console.error("Link Yandex ID error:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+module.exports = { updateProfile, changePassword, getReferralCode, joinPark, getReferrals, linkYandexId };
