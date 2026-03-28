@@ -14,6 +14,7 @@ import AdminOverview from './pages/admin/AdminOverview';
 import AdminDrivers from './pages/admin/AdminDrivers';
 import AdminWithdrawals from './pages/admin/AdminWithdrawals';
 import AdminParks from './pages/admin/AdminParks';
+import AdminBankAccounts from './pages/admin/AdminBankAccounts';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
         <Route path="/admin/drivers" element={<AdminDrivers />} />
         <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
         <Route path="/admin/parks" element={<AdminParks />} />
+        <Route path="/admin/bank-accounts" element={<AdminBankAccounts />} />
       </Routes>
     </Router>
   );

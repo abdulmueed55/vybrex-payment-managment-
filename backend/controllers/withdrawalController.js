@@ -6,7 +6,6 @@ const requestWithdrawal = async (req, res) => {
     const { amount, bank_name, account_number } = req.body;
     const driverId = req.driver.id;
 
-    // Validation
     if (!amount || !bank_name || !account_number) {
       return res.status(400).json({ error: "Amount, bank name, and account number are required" });
     }
@@ -15,7 +14,20 @@ const requestWithdrawal = async (req, res) => {
       return res.status(400).json({ error: "Minimum withdrawal amount is 50" });
     }
 
-    // Use transaction to prevent race conditions
+    // Verify bank account is verified
+    const bankAcc = await client.query(
+      "SELECT id, is_verified FROM bank_accounts WHERE driver_id = $1 AND bank_name = $2 AND account_number = $3",
+      [driverId, bank_name, account_number]
+    );
+
+    if (bankAcc.rows.length === 0) {
+      return res.status(400).json({ error: "Bank account not found. Please add your bank account first." });
+    }
+
+    if (!bankAcc.rows[0].is_verified) {
+      return res.status(400).json({ error: "Bank account not verified yet. Please wait for admin verification." });
+    }
+
     await client.query("BEGIN");
 
     const driverResult = await client.query(
@@ -30,13 +42,16 @@ const requestWithdrawal = async (req, res) => {
       return res.status(400).json({ error: "Insufficient balance", available_balance: balance.toFixed(2) });
     }
 
-    // Create withdrawal record
+    // Get commission rate from admin settings
+    const adminResult = await client.query("SELECT commission_rate FROM admins LIMIT 1");
+    const commissionRate = parseFloat(adminResult.rows[0]?.commission_rate || 5) / 100;
+    const commissionAmount = (parseFloat(amount) * commissionRate).toFixed(2);
+
     const withdrawal = await client.query(
-      "INSERT INTO withdrawals (driver_id, amount, bank_name, account_number) VALUES ($1, $2, $3, $4) RETURNING *",
-      [driverId, amount, bank_name, account_number]
+      "INSERT INTO withdrawals (driver_id, amount, bank_name, account_number, commission_amount) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+      [driverId, amount, bank_name, account_number, commissionAmount]
     );
 
-    // Deduct from driver balance
     await client.query(
       "UPDATE drivers SET balance = balance - $1 WHERE id = $2",
       [amount, driverId]
@@ -44,7 +59,14 @@ const requestWithdrawal = async (req, res) => {
 
     await client.query("COMMIT");
 
-    res.status(201).json({ message: "Withdrawal request submitted", withdrawal: withdrawal.rows[0] });
+    const driverReceives = (parseFloat(amount) - parseFloat(commissionAmount)).toFixed(2);
+
+    res.status(201).json({
+      message: "Withdrawal request submitted",
+      withdrawal: withdrawal.rows[0],
+      commission: commissionAmount,
+      driver_receives: driverReceives,
+    });
   } catch (err) {
     await client.query("ROLLBACK");
     console.error("Request withdrawal error:", err.message);

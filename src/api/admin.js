@@ -51,3 +51,28 @@ export const deletePark = (id) => {
   const token = localStorage.getItem("adminToken");
   return API.delete(`/api/admin/parks/${id}`, adminAPI(token));
 };
+
+export const getCommissionRate = () => {
+  const token = localStorage.getItem("adminToken");
+  return API.get("/api/admin/commission", adminAPI(token));
+};
+
+export const updateCommissionRate = (commission_rate) => {
+  const token = localStorage.getItem("adminToken");
+  return API.put("/api/admin/commission", { commission_rate }, adminAPI(token));
+};
+
+export const getAdminBankAccounts = () => {
+  const token = localStorage.getItem("adminToken");
+  return API.get("/api/admin/bank-accounts", adminAPI(token));
+};
+
+export const verifyBankAccount = (id) => {
+  const token = localStorage.getItem("adminToken");
+  return API.put(`/api/admin/bank-accounts/${id}/verify`, {}, adminAPI(token));
+};
+
+export const rejectBankAccount = (id) => {
+  const token = localStorage.getItem("adminToken");
+  return API.delete(`/api/admin/bank-accounts/${id}`, adminAPI(token));
+};
