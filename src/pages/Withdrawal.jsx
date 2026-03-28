@@ -16,7 +16,7 @@ const Withdrawal = () => {
 
   useEffect(() => {
     if (!localStorage.getItem('token')) {
-      navigate('/');
+      navigate('/login');
       return;
     }
     loadData();
@@ -30,7 +30,7 @@ const Withdrawal = () => {
     } catch (err) {
       if (err.response?.status === 401) {
         localStorage.clear();
-        navigate('/');
+        navigate('/login');
       }
     }
   };

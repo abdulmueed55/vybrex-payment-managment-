@@ -101,7 +101,7 @@ const verifyOtp = async (req, res) => {
 const getProfile = async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT id, name, phone, yandex_driver_id, balance, created_at FROM drivers WHERE id = $1",
+      "SELECT id, name, phone, yandex_driver_id, balance, park_id, referral_code, created_at FROM drivers WHERE id = $1",
       [req.driver.id]
     );
 
