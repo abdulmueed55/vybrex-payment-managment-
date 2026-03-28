@@ -1,9 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { requestWithdrawal, getWithdrawals } from '../api/withdrawal';
+import { requestWithdrawal, getWithdrawals, getCommissionRate } from '../api/withdrawal';
 import { getBalance } from '../api/earnings';
 import { getBankAccounts, addBankAccount, deleteBankAccount } from '../api/driver';
 import { Sidebar } from './Dashboard';
+
+const BANKS = [
+  { code: 'TBC', name: 'TBC Bank', swift: 'TBCBGE22' },
+  { code: 'BOG', name: 'Bank of Georgia', swift: 'BAGAGE22' },
+];
+
+const validateIBAN = (iban) => {
+  if (!iban) return false;
+  const cleaned = iban.replace(/\s/g, '').toUpperCase();
+  return /^GE\d{2}[A-Z0-9]{18}$/.test(cleaned) && cleaned.length === 22;
+};
 
 const Withdrawal = () => {
   const [amount, setAmount] = useState('');
@@ -11,10 +22,12 @@ const Withdrawal = () => {
   const [bankAccounts, setBankAccounts] = useState([]);
   const [balance, setBalance] = useState('0.00');
   const [withdrawals, setWithdrawals] = useState([]);
+  const [commissionRate, setCommissionRate] = useState(10);
   const [message, setMessage] = useState({ text: '', type: '' });
   const [loading, setLoading] = useState(false);
   const [showAddBank, setShowAddBank] = useState(false);
-  const [newBank, setNewBank] = useState({ bank_name: '', account_number: '' });
+  const [newBank, setNewBank] = useState({ bank_code: '', iban: '' });
+  const [ibanError, setIbanError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,24 +37,44 @@ const Withdrawal = () => {
 
   const loadData = async () => {
     try {
-      const [balRes, wRes, baRes] = await Promise.all([getBalance(), getWithdrawals(), getBankAccounts()]);
+      const [balRes, wRes, baRes, crRes] = await Promise.all([
+        getBalance(), getWithdrawals(), getBankAccounts(), getCommissionRate()
+      ]);
       setBalance(balRes.data.balance);
       setWithdrawals(wRes.data.withdrawals);
       setBankAccounts(baRes.data.bank_accounts);
+      setCommissionRate(crRes.data.commission_rate);
     } catch (err) {
       if (err.response?.status === 401) { localStorage.clear(); navigate('/login'); }
     }
   };
 
+  const handleIbanChange = (value) => {
+    const cleaned = value.replace(/\s/g, '').toUpperCase();
+    setNewBank({ ...newBank, iban: cleaned });
+    if (cleaned.length > 0 && cleaned.length < 22) {
+      setIbanError(`IBAN must be 22 characters (${cleaned.length}/22)`);
+    } else if (cleaned.length === 22 && !validateIBAN(cleaned)) {
+      setIbanError('Invalid Georgian IBAN format (must start with GE)');
+    } else {
+      setIbanError('');
+    }
+  };
+
   const handleAddBank = async () => {
-    if (!newBank.bank_name || !newBank.account_number) {
-      setMessage({ text: 'Bank name and account number are required', type: 'error' });
+    if (!newBank.bank_code) {
+      setMessage({ text: 'Please select a bank', type: 'error' });
+      return;
+    }
+    if (!validateIBAN(newBank.iban)) {
+      setMessage({ text: 'Invalid IBAN. Must be Georgian format (GE + 20 chars, 22 total)', type: 'error' });
       return;
     }
     try {
-      await addBankAccount(newBank.bank_name, newBank.account_number);
+      await addBankAccount(newBank.bank_code, newBank.iban);
       setMessage({ text: 'Bank account added! Pending admin verification.', type: 'success' });
-      setNewBank({ bank_name: '', account_number: '' });
+      setNewBank({ bank_code: '', iban: '' });
+      setIbanError('');
       setShowAddBank(false);
       await loadData();
       setTimeout(() => setMessage({ text: '', type: '' }), 4000);
@@ -70,7 +103,7 @@ const Withdrawal = () => {
       const res = await requestWithdrawal({
         amount: parseFloat(amount),
         bank_name: selectedAccount.bank_name,
-        account_number: selectedAccount.account_number,
+        account_number: selectedAccount.iban || selectedAccount.account_number,
       });
       const commission = res.data.commission || '0.00';
       const driverGets = res.data.driver_receives || amount;
@@ -85,8 +118,11 @@ const Withdrawal = () => {
     }
   };
 
-  const commissionPreview = amount ? (parseFloat(amount) * 0.05).toFixed(2) : '0.00';
+  const rate = commissionRate / 100;
+  const commissionPreview = amount ? (parseFloat(amount) * rate).toFixed(2) : '0.00';
   const receivePreview = amount ? (parseFloat(amount) - parseFloat(commissionPreview)).toFixed(2) : '0.00';
+
+  const selectedBankInfo = newBank.bank_code ? BANKS.find(b => b.code === newBank.bank_code) : null;
 
   return (
     <div className="min-h-screen bg-[#FAF9F6] flex" style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -119,13 +155,38 @@ const Withdrawal = () => {
 
               {showAddBank && (
                 <div className="bg-[#FAF9F6] rounded-xl p-4 mb-4 border border-[#E8E8E4]">
-                  <input type="text" placeholder="Bank Name (e.g. TBC Bank)" value={newBank.bank_name}
-                    onChange={(e) => setNewBank({ ...newBank, bank_name: e.target.value })}
-                    className="w-full border border-[#E8E8E4] rounded-xl px-4 py-2.5 text-sm text-[#0A0A0A] bg-white mb-3 focus:outline-none focus:border-[#0A0A0A]" />
-                  <input type="text" placeholder="Account Number" value={newBank.account_number}
-                    onChange={(e) => setNewBank({ ...newBank, account_number: e.target.value })}
-                    className="w-full border border-[#E8E8E4] rounded-xl px-4 py-2.5 text-sm text-[#0A0A0A] bg-white mb-3 focus:outline-none focus:border-[#0A0A0A]" />
-                  <button onClick={handleAddBank} className="bg-[#0A0A0A] text-white text-sm font-medium px-4 py-2 rounded-xl hover:bg-[#1a1a1a] transition">Add Account</button>
+                  <label className="block text-sm font-medium text-[#0A0A0A] mb-2">Select Bank</label>
+                  <div className="flex gap-3 mb-4">
+                    {BANKS.map((bank) => (
+                      <button key={bank.code} onClick={() => setNewBank({ ...newBank, bank_code: bank.code })}
+                        className={`flex-1 p-3 rounded-xl border text-sm font-medium transition ${
+                          newBank.bank_code === bank.code ? 'border-[#0A0A0A] bg-white text-[#0A0A0A]' : 'border-[#E8E8E4] bg-white text-[#6B6B6B] hover:border-[#0A0A0A]'
+                        }`}>
+                        <p className="font-semibold">{bank.name}</p>
+                        <p className="text-xs text-[#6B6B6B] mt-0.5">SWIFT: {bank.swift}</p>
+                      </button>
+                    ))}
+                  </div>
+
+                  <label className="block text-sm font-medium text-[#0A0A0A] mb-2">IBAN</label>
+                  <input type="text" placeholder="GE00XX0000000000000000" value={newBank.iban}
+                    onChange={(e) => handleIbanChange(e.target.value)} maxLength={22}
+                    className="w-full border border-[#E8E8E4] rounded-xl px-4 py-2.5 text-sm text-[#0A0A0A] bg-white mb-1 focus:outline-none focus:border-[#0A0A0A] font-mono tracking-wider" />
+                  {ibanError && <p className="text-[#DC2626] text-xs mb-2">{ibanError}</p>}
+                  {!ibanError && newBank.iban.length === 22 && <p className="text-[#16A34A] text-xs mb-2">Valid IBAN format</p>}
+                  <p className="text-[#6B6B6B] text-xs mb-3">Georgian IBAN: GE + 2 check digits + 18 alphanumeric characters</p>
+
+                  {selectedBankInfo && (
+                    <div className="bg-white rounded-lg p-2 mb-3 border border-[#E8E8E4] text-xs text-[#6B6B6B]">
+                      Bank: {selectedBankInfo.name} | SWIFT: {selectedBankInfo.swift}
+                    </div>
+                  )}
+
+                  <button onClick={handleAddBank}
+                    disabled={!newBank.bank_code || !validateIBAN(newBank.iban)}
+                    className="bg-[#0A0A0A] disabled:bg-[#a0a0a0] text-white text-sm font-medium px-4 py-2 rounded-xl hover:bg-[#1a1a1a] transition">
+                    Add Account
+                  </button>
                 </div>
               )}
 
@@ -140,7 +201,8 @@ const Withdrawal = () => {
                   } ${!ba.is_verified ? 'opacity-60 cursor-not-allowed' : ''}`}>
                   <div>
                     <p className="text-sm text-[#0A0A0A] font-medium">{ba.bank_name}</p>
-                    <p className="text-xs text-[#6B6B6B]">{ba.account_number}</p>
+                    <p className="text-xs text-[#6B6B6B] font-mono">{ba.iban || ba.account_number}</p>
+                    {ba.swift_code && <p className="text-xs text-[#6B6B6B]">SWIFT: {ba.swift_code}</p>}
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ba.is_verified ? 'bg-green-50 text-[#16A34A]' : 'bg-yellow-50 text-[#D97706]'}`}>
@@ -158,7 +220,8 @@ const Withdrawal = () => {
               {selectedAccount ? (
                 <div className="bg-[#FAF9F6] rounded-xl p-3 mb-4 border border-[#E8E8E4]">
                   <p className="text-xs text-[#6B6B6B]">Withdrawing to</p>
-                  <p className="text-sm text-[#0A0A0A] font-medium">{selectedAccount.bank_name} — {selectedAccount.account_number}</p>
+                  <p className="text-sm text-[#0A0A0A] font-medium">{selectedAccount.bank_name}</p>
+                  <p className="text-xs text-[#6B6B6B] font-mono">{selectedAccount.iban || selectedAccount.account_number}</p>
                 </div>
               ) : (
                 <p className="text-[#D97706] text-sm mb-4 bg-yellow-50 px-4 py-3 rounded-xl border border-yellow-100">Select a verified bank account above</p>
@@ -177,7 +240,7 @@ const Withdrawal = () => {
                     <span className="text-[#0A0A0A] font-medium">{parseFloat(amount).toFixed(2)} GEL</span>
                   </div>
                   <div className="flex justify-between mb-1">
-                    <span className="text-[#6B6B6B]">Commission (5%)</span>
+                    <span className="text-[#6B6B6B]">Commission ({commissionRate}%)</span>
                     <span className="text-[#DC2626] font-medium">-{commissionPreview} GEL</span>
                   </div>
                   <div className="flex justify-between pt-1 border-t border-[#E8E8E4]">
@@ -206,12 +269,17 @@ const Withdrawal = () => {
                     {parseFloat(tx.commission_amount) > 0 && (
                       <p className="text-[#6B6B6B] text-xs">Commission: {parseFloat(tx.commission_amount).toFixed(2)} GEL</p>
                     )}
+                    {tx.iban && <p className="text-[#6B6B6B] text-xs font-mono">{tx.iban}</p>}
                   </div>
                   <div className="text-right">
                     <p className="text-[#0A0A0A] text-sm font-semibold">{parseFloat(tx.amount).toFixed(2)} GEL</p>
+                    {parseFloat(tx.net_amount || 0) > 0 && (
+                      <p className="text-[#16A34A] text-xs font-medium">Net: {parseFloat(tx.net_amount).toFixed(2)} GEL</p>
+                    )}
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                       tx.status === 'approved' ? 'bg-green-50 text-[#16A34A]' :
                       tx.status === 'pending' ? 'bg-yellow-50 text-[#D97706]' :
+                      tx.status === 'processed' ? 'bg-blue-50 text-blue-600' :
                       'bg-red-50 text-[#DC2626]'
                     }`}>
                       {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}

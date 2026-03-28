@@ -13,8 +13,8 @@ export const joinPark = (parkId) => API.put("/api/driver/park", { park_id: parkI
 export const linkYandexId = (yandexDriverId) =>
   API.put("/api/driver/yandex-id", { yandex_driver_id: yandexDriverId });
 
-export const addBankAccount = (bank_name, account_number) =>
-  API.post("/api/driver/bank-accounts", { bank_name, account_number });
+export const addBankAccount = (bank_code, iban) =>
+  API.post("/api/driver/bank-accounts", { bank_code, iban });
 
 export const getBankAccounts = () => API.get("/api/driver/bank-accounts");
 

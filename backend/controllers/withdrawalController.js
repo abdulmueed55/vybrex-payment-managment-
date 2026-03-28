@@ -16,7 +16,7 @@ const requestWithdrawal = async (req, res) => {
 
     // Verify bank account is verified
     const bankAcc = await client.query(
-      "SELECT id, is_verified FROM bank_accounts WHERE driver_id = $1 AND bank_name = $2 AND account_number = $3",
+      "SELECT id, is_verified, bank_code, swift_code, iban FROM bank_accounts WHERE driver_id = $1 AND bank_name = $2 AND (account_number = $3 OR iban = $3)",
       [driverId, bank_name, account_number]
     );
 
@@ -27,6 +27,8 @@ const requestWithdrawal = async (req, res) => {
     if (!bankAcc.rows[0].is_verified) {
       return res.status(400).json({ error: "Bank account not verified yet. Please wait for admin verification." });
     }
+
+    const bankInfo = bankAcc.rows[0];
 
     await client.query("BEGIN");
 
@@ -42,14 +44,17 @@ const requestWithdrawal = async (req, res) => {
       return res.status(400).json({ error: "Insufficient balance", available_balance: balance.toFixed(2) });
     }
 
-    // Get commission rate from admin settings
+    // Get commission rate from admin settings (default 10%)
     const adminResult = await client.query("SELECT commission_rate FROM admins LIMIT 1");
-    const commissionRate = parseFloat(adminResult.rows[0]?.commission_rate || 5) / 100;
+    const commissionRate = parseFloat(adminResult.rows[0]?.commission_rate || 10) / 100;
     const commissionAmount = (parseFloat(amount) * commissionRate).toFixed(2);
+    const netAmount = (parseFloat(amount) - parseFloat(commissionAmount)).toFixed(2);
 
     const withdrawal = await client.query(
-      "INSERT INTO withdrawals (driver_id, amount, bank_name, account_number, commission_amount) VALUES ($1, $2, $3, $4, $5) RETURNING *",
-      [driverId, amount, bank_name, account_number, commissionAmount]
+      `INSERT INTO withdrawals (driver_id, amount, bank_name, account_number, commission_amount, net_amount, bank_code, swift_code, iban)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+      [driverId, amount, bank_name, account_number, commissionAmount, netAmount,
+       bankInfo.bank_code || null, bankInfo.swift_code || null, bankInfo.iban || account_number]
     );
 
     await client.query(
@@ -59,13 +64,13 @@ const requestWithdrawal = async (req, res) => {
 
     await client.query("COMMIT");
 
-    const driverReceives = (parseFloat(amount) - parseFloat(commissionAmount)).toFixed(2);
-
     res.status(201).json({
       message: "Withdrawal request submitted",
       withdrawal: withdrawal.rows[0],
       commission: commissionAmount,
-      driver_receives: driverReceives,
+      commission_rate: (commissionRate * 100).toFixed(0),
+      net_amount: netAmount,
+      driver_receives: netAmount,
     });
   } catch (err) {
     await client.query("ROLLBACK");
@@ -108,4 +113,15 @@ const getWithdrawalById = async (req, res) => {
   }
 };
 
-module.exports = { requestWithdrawal, getWithdrawals, getWithdrawalById };
+// Get commission rate (public for drivers)
+const getCommissionRate = async (req, res) => {
+  try {
+    const result = await pool.query("SELECT commission_rate FROM admins LIMIT 1");
+    res.json({ commission_rate: parseFloat(result.rows[0]?.commission_rate || 10) });
+  } catch (err) {
+    console.error("Get commission rate error:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+module.exports = { requestWithdrawal, getWithdrawals, getWithdrawalById, getCommissionRate };

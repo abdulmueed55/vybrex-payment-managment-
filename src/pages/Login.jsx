@@ -7,6 +7,7 @@ const Login = () => {
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [yandexId, setYandexId] = useState('');
+  const [email, setEmail] = useState('');
   const [isRegister, setIsRegister] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -39,7 +40,7 @@ const Login = () => {
     setLoading(true);
     try {
       const fullPhone = '+995' + phone;
-      await register(name, fullPhone, password, yandexId || undefined);
+      await register(name, fullPhone, password, yandexId || undefined, email || undefined);
       setSuccess('Registration successful! Sending OTP...');
       await sendOtp(fullPhone);
       localStorage.setItem('phone', fullPhone);
@@ -113,6 +114,19 @@ const Login = () => {
               placeholder="Create a password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              className="w-full border border-[#E8E8E4] rounded-xl px-4 py-3 outline-none text-[#0A0A0A] bg-[#FAF9F6] text-sm focus:border-[#0A0A0A] transition"
+            />
+          </div>
+        )}
+
+        {isRegister && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-[#0A0A0A] mb-2">Email <span className="text-[#6B6B6B] font-normal">(for OTP delivery)</span></label>
+            <input
+              type="email"
+              placeholder="your@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full border border-[#E8E8E4] rounded-xl px-4 py-3 outline-none text-[#0A0A0A] bg-[#FAF9F6] text-sm focus:border-[#0A0A0A] transition"
             />
           </div>

@@ -81,8 +81,26 @@ CREATE TABLE IF NOT EXISTS bank_accounts (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-ALTER TABLE admins ADD COLUMN IF NOT EXISTS commission_rate DECIMAL(5, 2) DEFAULT 5.00;
+ALTER TABLE admins ADD COLUMN IF NOT EXISTS commission_rate DECIMAL(5, 2) DEFAULT 10.00;
 ALTER TABLE withdrawals ADD COLUMN IF NOT EXISTS commission_amount DECIMAL(10, 2) DEFAULT 0;
 
+-- Bank integration columns
+ALTER TABLE bank_accounts ADD COLUMN IF NOT EXISTS bank_code VARCHAR(10);
+ALTER TABLE bank_accounts ADD COLUMN IF NOT EXISTS swift_code VARCHAR(20);
+ALTER TABLE bank_accounts ADD COLUMN IF NOT EXISTS iban VARCHAR(34);
+
+-- Withdrawal bank details
+ALTER TABLE withdrawals ADD COLUMN IF NOT EXISTS bank_code VARCHAR(10);
+ALTER TABLE withdrawals ADD COLUMN IF NOT EXISTS swift_code VARCHAR(20);
+ALTER TABLE withdrawals ADD COLUMN IF NOT EXISTS iban VARCHAR(34);
+ALTER TABLE withdrawals ADD COLUMN IF NOT EXISTS net_amount DECIMAL(10, 2) DEFAULT 0;
+ALTER TABLE withdrawals ADD COLUMN IF NOT EXISTS processed_at TIMESTAMP;
+
+-- Email for OTP
+ALTER TABLE drivers ADD COLUMN IF NOT EXISTS email VARCHAR(255);
+
+-- Update commission rate to 10%
+UPDATE admins SET commission_rate = 10.00 WHERE commission_rate = 5.00;
+
 -- Default admin (password: Admin@123)
-INSERT INTO admins (username, password_hash) VALUES ('admin', '$2b$10$xf7L/KHMV6mkHBedVrpkgeLmvLYg73Nf3jishjho79MUBlFvCizUG') ON CONFLICT (username) DO NOTHING;
+INSERT INTO admins (username, password_hash, commission_rate) VALUES ('admin', '$2b$10$xf7L/KHMV6mkHBedVrpkgeLmvLYg73Nf3jishjho79MUBlFvCizUG', 10.00) ON CONFLICT (username) DO NOTHING;
