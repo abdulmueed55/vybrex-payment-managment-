@@ -93,21 +93,42 @@ const linkYandexId = async (req, res) => {
   }
 };
 
+// Supported banks
+const SUPPORTED_BANKS = {
+  TBC: { name: "TBC Bank", code: "TBC", swift: "TBCBGE22" },
+  BOG: { name: "Bank of Georgia", code: "BOG", swift: "BAGAGE22" },
+};
+
+const validateIBAN = (iban) => {
+  if (!iban) return false;
+  const cleaned = iban.replace(/\s/g, "").toUpperCase();
+  return /^GE\d{2}[A-Z0-9]{18}$/.test(cleaned) && cleaned.length === 22;
+};
+
 // Bank accounts
 const addBankAccount = async (req, res) => {
   try {
-    const { bank_name, account_number } = req.body;
-    if (!bank_name || !account_number) return res.status(400).json({ error: "Bank name and account number are required" });
+    const { bank_code, iban } = req.body;
+    if (!bank_code || !iban) return res.status(400).json({ error: "Bank and IBAN are required" });
+
+    const bank = SUPPORTED_BANKS[bank_code];
+    if (!bank) return res.status(400).json({ error: "Unsupported bank. Use TBC or BOG" });
+
+    if (!validateIBAN(iban)) {
+      return res.status(400).json({ error: "Invalid IBAN. Must be Georgian format (GE + 20 characters, 22 total)" });
+    }
+
+    const cleanIban = iban.replace(/\s/g, "").toUpperCase();
 
     const existing = await pool.query(
-      "SELECT id FROM bank_accounts WHERE driver_id = $1 AND account_number = $2",
-      [req.driver.id, account_number]
+      "SELECT id FROM bank_accounts WHERE driver_id = $1 AND iban = $2",
+      [req.driver.id, cleanIban]
     );
     if (existing.rows.length > 0) return res.status(400).json({ error: "This account is already added" });
 
     const result = await pool.query(
-      "INSERT INTO bank_accounts (driver_id, bank_name, account_number) VALUES ($1, $2, $3) RETURNING *",
-      [req.driver.id, bank_name, account_number]
+      "INSERT INTO bank_accounts (driver_id, bank_name, account_number, bank_code, swift_code, iban) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+      [req.driver.id, bank.name, cleanIban, bank.code, bank.swift, cleanIban]
     );
     res.status(201).json({ message: "Bank account added, pending verification", bank_account: result.rows[0] });
   } catch (err) {

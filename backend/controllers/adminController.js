@@ -174,7 +174,7 @@ const adjustBalance = async (req, res) => {
 const getCommissionRate = async (req, res) => {
   try {
     const result = await pool.query("SELECT commission_rate FROM admins LIMIT 1");
-    res.json({ commission_rate: parseFloat(result.rows[0]?.commission_rate || 5) });
+    res.json({ commission_rate: parseFloat(result.rows[0]?.commission_rate || 10) });
   } catch (err) {
     console.error("Get commission rate error:", err.message);
     res.status(500).json({ error: "Server error" });
@@ -242,8 +242,34 @@ const rejectBankAccount = async (req, res) => {
   }
 };
 
+// Commission stats
+const getCommissionStats = async (req, res) => {
+  try {
+    const totalResult = await pool.query(
+      "SELECT COALESCE(SUM(commission_amount), 0) AS total FROM withdrawals WHERE status = 'approved'"
+    );
+    const todayResult = await pool.query(
+      "SELECT COALESCE(SUM(commission_amount), 0) AS today FROM withdrawals WHERE status = 'approved' AND created_at::date = CURRENT_DATE"
+    );
+    const monthResult = await pool.query(
+      "SELECT COALESCE(SUM(commission_amount), 0) AS monthly FROM withdrawals WHERE status = 'approved' AND created_at >= date_trunc('month', CURRENT_DATE)"
+    );
+    const rateResult = await pool.query("SELECT commission_rate FROM admins LIMIT 1");
+
+    res.json({
+      total_commission: parseFloat(totalResult.rows[0].total).toFixed(2),
+      today_commission: parseFloat(todayResult.rows[0].today).toFixed(2),
+      monthly_commission: parseFloat(monthResult.rows[0].monthly).toFixed(2),
+      commission_rate: parseFloat(rateResult.rows[0]?.commission_rate || 10),
+    });
+  } catch (err) {
+    console.error("Get commission stats error:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
 module.exports = {
   adminLogin, getAllDrivers, getAllWithdrawals, approveWithdrawal,
   rejectWithdrawal, adjustBalance, getCommissionRate, updateCommissionRate,
-  getAllBankAccounts, verifyBankAccount, rejectBankAccount,
+  getAllBankAccounts, verifyBankAccount, rejectBankAccount, getCommissionStats,
 };

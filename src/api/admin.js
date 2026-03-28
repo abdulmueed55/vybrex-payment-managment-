@@ -76,3 +76,8 @@ export const rejectBankAccount = (id) => {
   const token = localStorage.getItem("adminToken");
   return API.delete(`/api/admin/bank-accounts/${id}`, adminAPI(token));
 };
+
+export const getCommissionStats = () => {
+  const token = localStorage.getItem("adminToken");
+  return API.get("/api/admin/commission-stats", adminAPI(token));
+};

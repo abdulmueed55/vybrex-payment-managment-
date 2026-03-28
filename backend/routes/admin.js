@@ -3,7 +3,7 @@ const router = express.Router();
 const {
   adminLogin, getAllDrivers, getAllWithdrawals, approveWithdrawal,
   rejectWithdrawal, adjustBalance, getCommissionRate, updateCommissionRate,
-  getAllBankAccounts, verifyBankAccount, rejectBankAccount,
+  getAllBankAccounts, verifyBankAccount, rejectBankAccount, getCommissionStats,
 } = require("../controllers/adminController");
 const { getAllParks, createPark, updatePark, deletePark } = require("../controllers/parksController");
 const adminMiddleware = require("../middleware/adminAuth");
@@ -23,5 +23,6 @@ router.put("/commission", adminMiddleware, updateCommissionRate);
 router.get("/bank-accounts", adminMiddleware, getAllBankAccounts);
 router.put("/bank-accounts/:id/verify", adminMiddleware, verifyBankAccount);
 router.delete("/bank-accounts/:id", adminMiddleware, rejectBankAccount);
+router.get("/commission-stats", adminMiddleware, getCommissionStats);
 
 module.exports = router;

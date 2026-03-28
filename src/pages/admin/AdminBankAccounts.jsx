@@ -92,8 +92,9 @@ const AdminBankAccounts = () => {
             <thead>
               <tr className="border-b border-[#E8E8E4]">
                 <th className="text-left text-xs font-medium text-[#6B6B6B] py-3 px-6">Driver</th>
-                <th className="text-left text-xs font-medium text-[#6B6B6B] py-3">Bank Name</th>
-                <th className="text-left text-xs font-medium text-[#6B6B6B] py-3">Account Number</th>
+                <th className="text-left text-xs font-medium text-[#6B6B6B] py-3">Bank</th>
+                <th className="text-left text-xs font-medium text-[#6B6B6B] py-3">IBAN</th>
+                <th className="text-left text-xs font-medium text-[#6B6B6B] py-3">SWIFT</th>
                 <th className="text-left text-xs font-medium text-[#6B6B6B] py-3">Date Added</th>
                 <th className="text-left text-xs font-medium text-[#6B6B6B] py-3">Status</th>
                 <th className="text-left text-xs font-medium text-[#6B6B6B] py-3">Actions</th>
@@ -107,7 +108,8 @@ const AdminBankAccounts = () => {
                     <p className="text-xs text-[#6B6B6B]">{a.driver_phone}</p>
                   </td>
                   <td className="py-3 text-sm text-[#0A0A0A]">{a.bank_name}</td>
-                  <td className="py-3 text-sm text-[#6B6B6B] font-mono">{a.account_number}</td>
+                  <td className="py-3 text-sm text-[#6B6B6B] font-mono">{a.iban || a.account_number}</td>
+                  <td className="py-3 text-sm text-[#6B6B6B]">{a.swift_code || '-'}</td>
                   <td className="py-3 text-xs text-[#6B6B6B]">{new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
                   <td className="py-3">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${a.is_verified ? 'bg-green-50 text-[#16A34A]' : 'bg-yellow-50 text-[#D97706]'}`}>

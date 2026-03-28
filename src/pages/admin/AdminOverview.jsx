@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminSidebar from './AdminSidebar';
-import { getAdminDrivers, getAdminWithdrawals } from '../../api/admin';
+import { getAdminDrivers, getAdminWithdrawals, getCommissionStats } from '../../api/admin';
 
 const AdminOverview = () => {
   const navigate = useNavigate();
   const [drivers, setDrivers] = useState([]);
   const [withdrawals, setWithdrawals] = useState([]);
+  const [commissionStats, setCommissionStats] = useState({ total_commission: '0.00', today_commission: '0.00', monthly_commission: '0.00', commission_rate: 10 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,9 +17,10 @@ const AdminOverview = () => {
 
   const loadData = async () => {
     try {
-      const [dRes, wRes] = await Promise.all([getAdminDrivers(), getAdminWithdrawals()]);
+      const [dRes, wRes, cRes] = await Promise.all([getAdminDrivers(), getAdminWithdrawals(), getCommissionStats()]);
       setDrivers(dRes.data.drivers);
       setWithdrawals(wRes.data.withdrawals);
+      setCommissionStats(cRes.data);
     } catch (err) {
       if (err.response?.status === 401 || err.response?.status === 403) { localStorage.removeItem('adminToken'); navigate('/admin/login'); }
     } finally {
@@ -53,6 +55,31 @@ const AdminOverview = () => {
           ))}
         </div>
 
+        {/* Commission Dashboard */}
+        <h3 className="text-lg font-semibold text-[#0A0A0A] mb-4">Commission Dashboard</h3>
+        <div className="grid grid-cols-4 gap-5 mb-8">
+          <div className="bg-white rounded-xl p-6 border border-[#E8E8E4]" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+            <p className="text-[#6B6B6B] text-sm mb-1 font-medium">Commission Rate</p>
+            <h3 className="text-2xl font-bold text-[#0A0A0A]">{commissionStats.commission_rate}%</h3>
+            <p className="text-xs mt-1 font-medium text-[#6B6B6B]">Current rate</p>
+          </div>
+          <div className="bg-white rounded-xl p-6 border border-[#E8E8E4]" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+            <p className="text-[#6B6B6B] text-sm mb-1 font-medium">Total Commission</p>
+            <h3 className="text-2xl font-bold text-[#16A34A]">{parseFloat(commissionStats.total_commission).toLocaleString()} GEL</h3>
+            <p className="text-xs mt-1 font-medium text-[#6B6B6B]">All time earnings</p>
+          </div>
+          <div className="bg-white rounded-xl p-6 border border-[#E8E8E4]" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+            <p className="text-[#6B6B6B] text-sm mb-1 font-medium">Today's Commission</p>
+            <h3 className="text-2xl font-bold text-[#16A34A]">{parseFloat(commissionStats.today_commission).toLocaleString()} GEL</h3>
+            <p className="text-xs mt-1 font-medium text-[#6B6B6B]">Earned today</p>
+          </div>
+          <div className="bg-white rounded-xl p-6 border border-[#E8E8E4]" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+            <p className="text-[#6B6B6B] text-sm mb-1 font-medium">Monthly Commission</p>
+            <h3 className="text-2xl font-bold text-[#16A34A]">{parseFloat(commissionStats.monthly_commission).toLocaleString()} GEL</h3>
+            <p className="text-xs mt-1 font-medium text-[#6B6B6B]">This month</p>
+          </div>
+        </div>
+
         <div className="bg-white rounded-xl p-6 border border-[#E8E8E4]" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
           <h3 className="text-[#0A0A0A] font-semibold mb-4">Recent Withdrawals</h3>
           <table className="w-full">
@@ -61,6 +88,7 @@ const AdminOverview = () => {
                 <th className="text-left text-xs font-medium text-[#6B6B6B] py-3">Driver</th>
                 <th className="text-left text-xs font-medium text-[#6B6B6B] py-3">Bank</th>
                 <th className="text-left text-xs font-medium text-[#6B6B6B] py-3">Amount</th>
+                <th className="text-left text-xs font-medium text-[#6B6B6B] py-3">Commission</th>
                 <th className="text-left text-xs font-medium text-[#6B6B6B] py-3">Date</th>
                 <th className="text-left text-xs font-medium text-[#6B6B6B] py-3">Status</th>
               </tr>
@@ -71,6 +99,7 @@ const AdminOverview = () => {
                   <td className="py-3 text-sm text-[#0A0A0A] font-medium">{w.driver_name}</td>
                   <td className="py-3 text-sm text-[#6B6B6B]">{w.bank_name}</td>
                   <td className="py-3 text-sm text-[#0A0A0A] font-semibold">{parseFloat(w.amount).toFixed(2)} GEL</td>
+                  <td className="py-3 text-sm text-[#16A34A] font-medium">{parseFloat(w.commission_amount || 0).toFixed(2)} GEL</td>
                   <td className="py-3 text-xs text-[#6B6B6B]">{new Date(w.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</td>
                   <td className="py-3">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
