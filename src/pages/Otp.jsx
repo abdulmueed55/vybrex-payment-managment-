@@ -13,7 +13,7 @@ const Otp = () => {
 
   useEffect(() => {
     if (!phone) {
-      navigate('/');
+      navigate('/login');
     }
   }, [phone, navigate]);
 

@@ -4,7 +4,7 @@ const pool = require("../db");
 
 const register = async (req, res) => {
   try {
-    const { name, phone, password } = req.body;
+    const { name, phone, password, yandex_driver_id } = req.body;
 
     if (!name || !phone || !password) {
       return res.status(400).json({ error: "Name, phone, and password are required" });
@@ -19,8 +19,8 @@ const register = async (req, res) => {
     const password_hash = await bcrypt.hash(password, salt);
 
     const result = await pool.query(
-      "INSERT INTO drivers (name, phone, password_hash) VALUES ($1, $2, $3) RETURNING id, name, phone, balance, created_at",
-      [name, phone, password_hash]
+      "INSERT INTO drivers (name, phone, password_hash, yandex_driver_id) VALUES ($1, $2, $3, $4) RETURNING id, name, phone, yandex_driver_id, balance, created_at",
+      [name, phone, password_hash, yandex_driver_id || null]
     );
 
     res.status(201).json({ message: "Driver registered successfully", driver: result.rows[0] });
@@ -101,7 +101,7 @@ const verifyOtp = async (req, res) => {
 const getProfile = async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT id, name, phone, yandex_driver_id, balance, created_at FROM drivers WHERE id = $1",
+      "SELECT id, name, phone, yandex_driver_id, balance, park_id, referral_code, created_at FROM drivers WHERE id = $1",
       [req.driver.id]
     );
 

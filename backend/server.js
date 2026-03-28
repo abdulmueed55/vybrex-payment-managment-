@@ -14,6 +14,7 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/earnings", require("./routes/earnings"));
 app.use("/api/withdrawal", require("./routes/withdrawal"));
 app.use("/api/admin", require("./routes/admin"));
+app.use("/api/driver", require("./routes/driver"));
 
 // Test route
 app.get("/", (req, res) => {
