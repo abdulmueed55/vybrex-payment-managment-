@@ -1,6 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { adminLogin, getAllDrivers, getAllWithdrawals, approveWithdrawal, rejectWithdrawal, adjustBalance } = require("../controllers/adminController");
+const {
+  adminLogin, getAllDrivers, getAllWithdrawals, approveWithdrawal,
+  rejectWithdrawal, adjustBalance, getCommissionRate, updateCommissionRate,
+  getAllBankAccounts, verifyBankAccount, rejectBankAccount,
+} = require("../controllers/adminController");
 const { getAllParks, createPark, updatePark, deletePark } = require("../controllers/parksController");
 const adminMiddleware = require("../middleware/adminAuth");
 
@@ -14,5 +18,10 @@ router.get("/parks", adminMiddleware, getAllParks);
 router.post("/parks", adminMiddleware, createPark);
 router.put("/parks/:id", adminMiddleware, updatePark);
 router.delete("/parks/:id", adminMiddleware, deletePark);
+router.get("/commission", adminMiddleware, getCommissionRate);
+router.put("/commission", adminMiddleware, updateCommissionRate);
+router.get("/bank-accounts", adminMiddleware, getAllBankAccounts);
+router.put("/bank-accounts/:id/verify", adminMiddleware, verifyBankAccount);
+router.delete("/bank-accounts/:id", adminMiddleware, rejectBankAccount);
 
 module.exports = router;

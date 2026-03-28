@@ -120,10 +120,11 @@ const Login = () => {
 
         {isRegister && (
           <div className="mb-4">
-            <label className="block text-sm font-medium text-[#0A0A0A] mb-2">Yandex Driver ID <span className="text-[#6B6B6B] font-normal">(optional)</span></label>
+            <label className="block text-sm font-medium text-[#0A0A0A] mb-1">Yandex Driver ID <span className="text-[#6B6B6B] font-normal">(optional)</span></label>
+            <p className="text-xs text-[#6B6B6B] mb-2">Find it in Yandex Pro app &rarr; Profile</p>
             <input
               type="text"
-              placeholder="Your Yandex Fleet driver ID"
+              placeholder="Enter your Yandex Driver ID"
               value={yandexId}
               onChange={(e) => setYandexId(e.target.value)}
               className="w-full border border-[#E8E8E4] rounded-xl px-4 py-3 outline-none text-[#0A0A0A] bg-[#FAF9F6] text-sm focus:border-[#0A0A0A] transition"
