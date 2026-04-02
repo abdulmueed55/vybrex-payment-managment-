@@ -67,24 +67,44 @@ const syncEarnings = async (req, res) => {
 
 const getBalance = async (req, res) => {
   try {
+    // Get driver's Yandex ID
+    const driverResult = await pool.query(
+      "SELECT yandex_driver_id, balance FROM drivers WHERE id = $1",
+      [req.driver.id]
+    );
+
+    const yandexDriverId = driverResult.rows[0]?.yandex_driver_id;
+    let yandexBalance = parseFloat(driverResult.rows[0]?.balance || 0);
+
+    // Try to get live balance from Yandex
+    if (yandexDriverId) {
+      try {
+        const balanceData = await yandex.getDriverBalance(yandexDriverId);
+        yandexBalance = balanceData.balance;
+        // Update local balance
+        await pool.query("UPDATE drivers SET balance = $1 WHERE id = $2", [yandexBalance.toFixed(2), req.driver.id]);
+      } catch (err) {
+        console.error("Yandex balance fetch failed, using local:", err.message);
+      }
+    }
+
     const earnings = await pool.query(
       "SELECT COALESCE(SUM(amount), 0) AS total_earnings FROM earnings WHERE driver_id = $1",
       [req.driver.id]
     );
 
     const withdrawals = await pool.query(
-      "SELECT COALESCE(SUM(amount), 0) AS total_withdrawn FROM withdrawals WHERE driver_id = $1 AND status = 'approved'",
+      "SELECT COALESCE(SUM(amount), 0) AS total_withdrawn FROM withdrawals WHERE driver_id = $1 AND status IN ('approved', 'processed')",
       [req.driver.id]
     );
 
     const totalEarnings = parseFloat(earnings.rows[0].total_earnings);
     const totalWithdrawn = parseFloat(withdrawals.rows[0].total_withdrawn);
-    const balance = (totalEarnings - totalWithdrawn).toFixed(2);
 
     res.json({
       total_earnings: totalEarnings.toFixed(2),
       total_withdrawn: totalWithdrawn.toFixed(2),
-      balance,
+      balance: yandexBalance.toFixed(2),
     });
   } catch (err) {
     console.error("Get balance error:", err.message);

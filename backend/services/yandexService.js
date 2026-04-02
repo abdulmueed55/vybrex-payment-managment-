@@ -14,6 +14,62 @@ const fleetClient = axios.create({
 });
 
 /**
+ * Get a driver by phone number from Yandex Fleet API.
+ * Used during registration to verify driver belongs to this park.
+ */
+const getDriverByPhone = async (phone) => {
+  const response = await fleetClient.post("/v1/parks/driver-profiles/list", {
+    fields: {
+      account: ["balance", "currency"],
+      driver_profile: [
+        "id",
+        "first_name",
+        "last_name",
+        "phones",
+        "created_date",
+        "work_status",
+      ],
+      car: ["brand", "model", "number", "year"],
+    },
+    query: {
+      park: {
+        id: process.env.YANDEX_PARK_ID,
+        driver_profile: {
+          phones: [phone],
+        },
+      },
+    },
+    limit: 1,
+    offset: 0,
+  });
+
+  const profiles = response.data.driver_profiles || [];
+  if (profiles.length === 0) {
+    return null;
+  }
+
+  const profile = profiles[0];
+  const account = profile.accounts?.[0] || {};
+  const car = profile.car || {};
+
+  return {
+    yandex_id: profile.driver_profile?.id,
+    first_name: profile.driver_profile?.first_name,
+    last_name: profile.driver_profile?.last_name,
+    name: `${profile.driver_profile?.first_name || ""} ${profile.driver_profile?.last_name || ""}`.trim(),
+    phones: profile.driver_profile?.phones || [],
+    work_status: profile.current_status?.status,
+    balance: parseFloat(account.balance || "0"),
+    currency: account.currency || "GEL",
+    car_brand: car.brand,
+    car_model: car.model,
+    car_number: car.number,
+    car_year: car.year,
+    created_date: profile.driver_profile?.created_date,
+  };
+};
+
+/**
  * Get a single driver's profile with balance from Yandex Fleet API.
  * POST /v1/parks/driver-profiles/list with a filter on the specific driver ID.
  */
@@ -29,6 +85,7 @@ const getDriverProfile = async (yandexDriverId) => {
         "created_date",
         "work_status",
       ],
+      car: ["brand", "model", "number"],
     },
     query: {
       park: {
@@ -49,15 +106,20 @@ const getDriverProfile = async (yandexDriverId) => {
 
   const profile = profiles[0];
   const account = profile.accounts?.[0] || {};
+  const car = profile.car || {};
 
   return {
     yandex_id: profile.driver_profile?.id,
     first_name: profile.driver_profile?.first_name,
     last_name: profile.driver_profile?.last_name,
+    name: `${profile.driver_profile?.first_name || ""} ${profile.driver_profile?.last_name || ""}`.trim(),
     phones: profile.driver_profile?.phones || [],
     work_status: profile.current_status?.status,
     balance: parseFloat(account.balance || "0"),
     currency: account.currency || "GEL",
+    car_brand: car.brand,
+    car_model: car.model,
+    car_number: car.number,
     created_date: profile.driver_profile?.created_date,
   };
 };
@@ -227,6 +289,7 @@ const syncDriverEarnings = async (pool, driverId, yandexDriverId) => {
 };
 
 module.exports = {
+  getDriverByPhone,
   getDriverProfile,
   getDriverBalance,
   getDriverTransactions,

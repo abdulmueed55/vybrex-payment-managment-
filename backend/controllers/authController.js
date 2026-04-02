@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const pool = require("../db");
+const yandex = require("../services/yandexService");
 
 // Email transporter (configure in .env)
 let emailTransporter = null;
@@ -33,10 +34,10 @@ const sendOtpEmail = async (email, otpCode) => {
 
 const register = async (req, res) => {
   try {
-    const { name, phone, password, yandex_driver_id, email } = req.body;
+    const { phone, password, email } = req.body;
 
-    if (!name || !phone || !password) {
-      return res.status(400).json({ error: "Name, phone, and password are required" });
+    if (!phone || !password) {
+      return res.status(400).json({ error: "Phone and password are required" });
     }
 
     const existing = await pool.query("SELECT id FROM drivers WHERE phone = $1", [phone]);
@@ -44,15 +45,46 @@ const register = async (req, res) => {
       return res.status(400).json({ error: "Phone number already registered" });
     }
 
+    // Verify driver exists in Yandex park
+    let yandexProfile = null;
+    try {
+      yandexProfile = await yandex.getDriverByPhone(phone);
+    } catch (err) {
+      console.error("Yandex API error during registration:", err.message);
+      return res.status(502).json({ error: "Could not verify with Yandex Fleet. Please try again later." });
+    }
+
+    if (!yandexProfile) {
+      return res.status(400).json({ error: "You are not registered in this park. Please contact the park administrator." });
+    }
+
+    const driverName = yandexProfile.name || req.body.name || "Driver";
+
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(password, salt);
 
     const result = await pool.query(
-      "INSERT INTO drivers (name, phone, password_hash, yandex_driver_id, email) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, phone, yandex_driver_id, email, balance, created_at",
-      [name, phone, password_hash, yandex_driver_id || null, email || null]
+      "INSERT INTO drivers (name, phone, password_hash, yandex_driver_id, email, balance) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, phone, yandex_driver_id, email, balance, created_at",
+      [driverName, phone, password_hash, yandexProfile.yandex_id, email || null, yandexProfile.balance.toFixed(2)]
     );
 
-    res.status(201).json({ message: "Driver registered successfully", driver: result.rows[0] });
+    const driverData = {
+      ...result.rows[0],
+      car_brand: yandexProfile.car_brand,
+      car_model: yandexProfile.car_model,
+      car_number: yandexProfile.car_number,
+    };
+
+    res.status(201).json({
+      message: "Driver registered successfully",
+      driver: driverData,
+      yandex_profile: {
+        name: yandexProfile.name,
+        car: yandexProfile.car_brand ? `${yandexProfile.car_brand} ${yandexProfile.car_model}` : null,
+        car_number: yandexProfile.car_number,
+        balance: yandexProfile.balance,
+      },
+    });
   } catch (err) {
     console.error("Register error:", err.message);
     res.status(500).json({ error: "Server error" });

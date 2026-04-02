@@ -6,7 +6,6 @@ import Otp from './pages/Otp';
 import Dashboard from './pages/Dashboard';
 import Withdrawal from './pages/Withdrawal';
 import Parks from './pages/Parks';
-import Bonus from './pages/Bonus';
 import Profile from './pages/Profile';
 import Terms from './pages/Terms';
 import AdminLogin from './pages/admin/AdminLogin';
@@ -26,7 +25,6 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/withdrawal" element={<Withdrawal />} />
         <Route path="/parks" element={<Parks />} />
-        <Route path="/bonus" element={<Bonus />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/admin/login" element={<AdminLogin />} />

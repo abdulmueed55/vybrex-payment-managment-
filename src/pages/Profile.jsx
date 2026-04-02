@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sidebar } from './Dashboard';
-import { getDriverProfile, updateProfile, changePassword, getReferralCode, linkYandexId } from '../api/driver';
+import { getDriverProfile, updateProfile, changePassword, linkYandexId } from '../api/driver';
 import { getBalance, getEarnings } from '../api/earnings';
-import { getWithdrawals } from '../api/withdrawal';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -11,8 +10,6 @@ const Profile = () => {
   const [stats, setStats] = useState({ rides: 0, earnings: '0.00', withdrawn: '0.00' });
   const [editName, setEditName] = useState('');
   const [editing, setEditing] = useState(false);
-  const [referralCode, setReferralCode] = useState('');
-  const [copied, setCopied] = useState(false);
   const [pwForm, setPwForm] = useState({ current: '', new: '', confirm: '' });
   const [showPw, setShowPw] = useState(false);
   const [yandexIdInput, setYandexIdInput] = useState('');
@@ -26,13 +23,12 @@ const Profile = () => {
 
   const loadData = async () => {
     try {
-      const [pRes, bRes, eRes, wRes, rRes] = await Promise.all([
-        getDriverProfile(), getBalance(), getEarnings(), getWithdrawals(), getReferralCode().catch(() => ({ data: { referral_code: '' } })),
+      const [pRes, bRes, eRes] = await Promise.all([
+        getDriverProfile(), getBalance(), getEarnings(),
       ]);
       setProfile(pRes.data.driver);
       setEditName(pRes.data.driver.name);
       setStats({ rides: eRes.data.earnings.length, earnings: bRes.data.total_earnings, withdrawn: bRes.data.total_withdrawn });
-      setReferralCode(rRes.data.referral_code || '');
     } catch (err) {
       if (err.response?.status === 401) { localStorage.clear(); navigate('/login'); }
     }
@@ -78,12 +74,6 @@ const Profile = () => {
     } catch (err) {
       setMessage({ text: err.response?.data?.error || 'Failed to link Yandex ID', type: 'error' });
     }
-  };
-
-  const copyReferral = () => {
-    navigator.clipboard.writeText(`https://paypro.ge/register?ref=${referralCode}`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   if (!profile) return <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center" style={{ fontFamily: "'Inter', sans-serif" }}><p className="text-[#6B6B6B]">Loading...</p></div>;
@@ -172,18 +162,6 @@ const Profile = () => {
               </div>
             </div>
 
-            {/* Referral */}
-            {referralCode && (
-              <div className="bg-[#FAF9F6] rounded-xl p-4 border border-[#E8E8E4]">
-                <p className="text-[#0A0A0A] text-sm font-semibold mb-2">Your Referral Code</p>
-                <div className="flex gap-2">
-                  <input type="text" readOnly value={referralCode} className="flex-1 bg-white border border-[#E8E8E4] rounded-lg px-3 py-2 text-sm text-[#0A0A0A] font-mono" />
-                  <button onClick={copyReferral} className="bg-[#0A0A0A] text-white text-xs font-medium px-4 py-2 rounded-lg hover:bg-[#1a1a1a] transition">
-                    {copied ? 'Copied!' : 'Copy Link'}
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Change Password */}
