@@ -4,9 +4,7 @@ import { sendOtp, register } from '../api/auth';
 
 const Login = () => {
   const [phone, setPhone] = useState('');
-  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
-  const [yandexId, setYandexId] = useState('');
   const [email, setEmail] = useState('');
   const [isRegister, setIsRegister] = useState(false);
   const [error, setError] = useState('');
@@ -31,8 +29,8 @@ const Login = () => {
   };
 
   const handleRegister = async () => {
-    if (!name || phone.length < 9 || !password) {
-      setError('All fields are required');
+    if (phone.length < 9 || !password) {
+      setError('Phone and password are required');
       return;
     }
     setError('');
@@ -40,8 +38,13 @@ const Login = () => {
     setLoading(true);
     try {
       const fullPhone = '+995' + phone;
-      await register(name, fullPhone, password, yandexId || undefined, email || undefined);
-      setSuccess('Registration successful! Sending OTP...');
+      const res = await register(fullPhone, password, email || undefined);
+      const yandexInfo = res.data.yandex_profile;
+      let msg = 'Registration successful!';
+      if (yandexInfo?.name) msg += ` Welcome, ${yandexInfo.name}.`;
+      if (yandexInfo?.car) msg += ` Car: ${yandexInfo.car}`;
+      if (yandexInfo?.car_number) msg += ` (${yandexInfo.car_number})`;
+      setSuccess(msg + ' Sending OTP...');
       await sendOtp(fullPhone);
       localStorage.setItem('phone', fullPhone);
       navigate('/otp');
@@ -77,19 +80,6 @@ const Login = () => {
           </div>
         )}
 
-        {isRegister && (
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-[#0A0A0A] mb-2">Full Name</label>
-            <input
-              type="text"
-              placeholder="Enter your full name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full border border-[#E8E8E4] rounded-xl px-4 py-3 outline-none text-[#0A0A0A] bg-[#FAF9F6] text-sm focus:border-[#0A0A0A] transition"
-            />
-          </div>
-        )}
-
         <div className="mb-4">
           <label className="block text-sm font-medium text-[#0A0A0A] mb-2">Phone Number</label>
           <div className="flex border border-[#E8E8E4] rounded-xl overflow-hidden focus-within:border-[#0A0A0A] transition">
@@ -104,6 +94,9 @@ const Login = () => {
               className="flex-1 px-4 py-3 outline-none text-[#0A0A0A] text-sm bg-white"
             />
           </div>
+          {isRegister && (
+            <p className="text-xs text-[#6B6B6B] mt-1">Must match your Yandex Pro phone number</p>
+          )}
         </div>
 
         {isRegister && (
@@ -133,16 +126,8 @@ const Login = () => {
         )}
 
         {isRegister && (
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-[#0A0A0A] mb-1">Yandex Driver ID <span className="text-[#6B6B6B] font-normal">(optional)</span></label>
-            <p className="text-xs text-[#6B6B6B] mb-2">Find it in Yandex Pro app &rarr; Profile</p>
-            <input
-              type="text"
-              placeholder="Enter your Yandex Driver ID"
-              value={yandexId}
-              onChange={(e) => setYandexId(e.target.value)}
-              className="w-full border border-[#E8E8E4] rounded-xl px-4 py-3 outline-none text-[#0A0A0A] bg-[#FAF9F6] text-sm focus:border-[#0A0A0A] transition"
-            />
+          <div className="bg-[#FAF9F6] rounded-xl p-3 mb-4 border border-[#E8E8E4]">
+            <p className="text-xs text-[#6B6B6B]">Your name and car details will be auto-filled from Yandex Fleet. You must be registered in the park to sign up.</p>
           </div>
         )}
 
@@ -151,7 +136,7 @@ const Login = () => {
           disabled={loading || phone.length < 9}
           className="w-full bg-[#0A0A0A] hover:bg-[#1a1a1a] disabled:bg-[#a0a0a0] text-white font-semibold py-3 rounded-xl transition duration-200 mt-2 text-sm"
         >
-          {loading ? (isRegister ? 'Registering...' : 'Sending...') : (isRegister ? 'Register & Continue' : 'Send OTP')}
+          {loading ? (isRegister ? 'Verifying with Yandex...' : 'Sending...') : (isRegister ? 'Register' : 'Send OTP')}
         </button>
 
         <p className="text-center text-sm text-[#6B6B6B] mt-5">

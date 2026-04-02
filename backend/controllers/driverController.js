@@ -1,5 +1,4 @@
 const bcrypt = require("bcryptjs");
-const crypto = require("crypto");
 const pool = require("../db");
 
 const updateProfile = async (req, res) => {
@@ -36,21 +35,6 @@ const changePassword = async (req, res) => {
   }
 };
 
-const getReferralCode = async (req, res) => {
-  try {
-    let driver = await pool.query("SELECT referral_code FROM drivers WHERE id = $1", [req.driver.id]);
-    let code = driver.rows[0].referral_code;
-    if (!code) {
-      code = "PP-" + crypto.randomBytes(4).toString("hex").toUpperCase();
-      await pool.query("UPDATE drivers SET referral_code = $1 WHERE id = $2", [code, req.driver.id]);
-    }
-    res.json({ referral_code: code });
-  } catch (err) {
-    console.error("Get referral code error:", err.message);
-    res.status(500).json({ error: "Server error" });
-  }
-};
-
 const joinPark = async (req, res) => {
   try {
     const { park_id } = req.body;
@@ -63,19 +47,6 @@ const joinPark = async (req, res) => {
     res.json({ message: "Joined park successfully" });
   } catch (err) {
     console.error("Join park error:", err.message);
-    res.status(500).json({ error: "Server error" });
-  }
-};
-
-const getReferrals = async (req, res) => {
-  try {
-    const result = await pool.query(
-      "SELECT r.*, d.name AS referred_name FROM referrals r JOIN drivers d ON r.referred_id = d.id WHERE r.referrer_id = $1 ORDER BY r.created_at DESC",
-      [req.driver.id]
-    );
-    res.json({ referrals: result.rows, count: result.rows.length });
-  } catch (err) {
-    console.error("Get referrals error:", err.message);
     res.status(500).json({ error: "Server error" });
   }
 };
@@ -164,4 +135,4 @@ const deleteBankAccount = async (req, res) => {
   }
 };
 
-module.exports = { updateProfile, changePassword, getReferralCode, joinPark, getReferrals, linkYandexId, addBankAccount, getBankAccounts, deleteBankAccount };
+module.exports = { updateProfile, changePassword, joinPark, linkYandexId, addBankAccount, getBankAccounts, deleteBankAccount };
