@@ -1,8 +1,15 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
+const twilio = require("twilio");
 const pool = require("../db");
 const yandex = require("../services/yandexService");
+
+// Twilio SMS client
+let twilioClient = null;
+if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
+  twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+}
 
 // Email transporter (configure in .env)
 let emailTransporter = null;
@@ -15,6 +22,22 @@ if (process.env.SMTP_USER && process.env.SMTP_PASS) {
     },
   });
 }
+
+const sendOtpSms = async (phone, otpCode) => {
+  if (!twilioClient || !process.env.TWILIO_PHONE_NUMBER) return false;
+  try {
+    await twilioClient.messages.create({
+      body: `Your PayPro verification code is: ${otpCode}. It expires in 5 minutes.`,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: phone,
+    });
+    console.log(`SMS OTP sent to ${phone}`);
+    return true;
+  } catch (err) {
+    console.error("Twilio SMS error:", err.message);
+    return false;
+  }
+};
 
 const sendOtpEmail = async (email, otpCode) => {
   if (!emailTransporter) return false;
@@ -112,10 +135,13 @@ const sendOtp = async (req, res) => {
       [phone, otp_code, expires_at]
     );
 
-    // Try email delivery first
-    const driverEmail = driver.rows[0].email;
+    // 1. Try SMS delivery via Twilio first
+    const smsSent = await sendOtpSms(phone, otp_code);
+
+    // 2. Try email delivery as fallback
     let emailSent = false;
-    if (driverEmail) {
+    const driverEmail = driver.rows[0].email;
+    if (!smsSent && driverEmail) {
       emailSent = await sendOtpEmail(driverEmail, otp_code);
     }
 
@@ -124,11 +150,14 @@ const sendOtp = async (req, res) => {
 
     const response = { message: "OTP sent successfully" };
 
-    if (emailSent) {
+    if (smsSent) {
+      response.delivery = "sms";
+      response.phone_hint = phone.replace(/(.{4})(.*)(.{2})/, "$1****$3");
+    } else if (emailSent) {
       response.delivery = "email";
       response.email_hint = driverEmail.replace(/(.{2})(.*)(@.*)/, "$1***$3");
     } else {
-      // Return OTP in response as fallback (for dev/testing, remove in production)
+      // Return OTP in response as last fallback (for dev/testing)
       response.otp = otp_code;
       response.delivery = "response";
     }
@@ -181,7 +210,7 @@ const verifyOtp = async (req, res) => {
 const getProfile = async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT id, name, phone, email, yandex_driver_id, balance, park_id, referral_code, created_at FROM drivers WHERE id = $1",
+      "SELECT id, name, phone, email, yandex_driver_id, balance, park_id, created_at FROM drivers WHERE id = $1",
       [req.driver.id]
     );
 

@@ -18,8 +18,9 @@ const Login = () => {
     setLoading(true);
     try {
       const fullPhone = '+995' + phone;
-      await sendOtp(fullPhone);
+      const res = await sendOtp(fullPhone);
       localStorage.setItem('phone', fullPhone);
+      localStorage.setItem('otpDelivery', res.data.delivery || 'sms');
       navigate('/otp');
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to send OTP');
@@ -45,8 +46,9 @@ const Login = () => {
       if (yandexInfo?.car) msg += ` Car: ${yandexInfo.car}`;
       if (yandexInfo?.car_number) msg += ` (${yandexInfo.car_number})`;
       setSuccess(msg + ' Sending OTP...');
-      await sendOtp(fullPhone);
+      const otpRes = await sendOtp(fullPhone);
       localStorage.setItem('phone', fullPhone);
+      localStorage.setItem('otpDelivery', otpRes.data.delivery || 'sms');
       navigate('/otp');
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed');

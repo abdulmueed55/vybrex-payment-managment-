@@ -7,6 +7,7 @@ const Otp = () => {
   const [timer, setTimer] = useState(60);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [delivery, setDelivery] = useState(localStorage.getItem('otpDelivery') || 'sms');
   const navigate = useNavigate();
 
   const phone = localStorage.getItem('phone');
@@ -52,7 +53,8 @@ const Otp = () => {
 
   const handleResend = async () => {
     try {
-      await sendOtp(phone);
+      const res = await sendOtp(phone);
+      setDelivery(res.data.delivery || 'sms');
       setTimer(60);
       setError('');
     } catch (err) {
@@ -70,7 +72,10 @@ const Otp = () => {
         </div>
 
         <h2 className="text-lg font-semibold text-[#0A0A0A] mb-2">Enter OTP Code</h2>
-        <p className="text-[#6B6B6B] text-sm mb-6">We sent a 6-digit code to {phone}</p>
+        <p className="text-[#6B6B6B] text-sm mb-2">We sent a 6-digit code to {phone}</p>
+        <p className="text-xs mb-6 font-medium" style={{ color: delivery === 'sms' ? '#16A34A' : delivery === 'email' ? '#2563EB' : '#D97706' }}>
+          {delivery === 'sms' ? 'Sent via SMS' : delivery === 'email' ? 'Sent to your email' : 'Check console for OTP (dev mode)'}
+        </p>
 
         {error && (
           <div className="bg-red-50 text-[#DC2626] text-sm px-4 py-3 rounded-xl mb-4 border border-red-100">
