@@ -35,6 +35,11 @@ app.get("/", (req, res) => {
   res.json({ message: "PayPro API is running" });
 });
 
+// 404 handler for unknown routes
+app.use((req, res) => {
+  res.status(404).json({ error: "Route not found" });
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
