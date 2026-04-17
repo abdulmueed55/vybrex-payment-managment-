@@ -5,21 +5,21 @@ const twilio = require("twilio");
 const pool = require("../db");
 const yandex = require("../services/yandexService");
 
-// Twilio SMS client
 let twilioClient = null;
 if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
-  twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+  try {
+    twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+    console.log("Twilio client initialized");
+  } catch (err) {
+    console.error("Twilio init error:", err.message);
+  }
 }
 
-// Email transporter (configure in .env)
 let emailTransporter = null;
 if (process.env.SMTP_USER && process.env.SMTP_PASS) {
   emailTransporter = nodemailer.createTransport({
     service: "gmail",
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
   });
 }
 
@@ -68,39 +68,30 @@ const register = async (req, res) => {
       return res.status(400).json({ error: "Phone number already registered" });
     }
 
-    // Verify driver exists in Yandex park
     let yandexProfile = null;
     try {
       yandexProfile = await yandex.getDriverByPhone(phone);
     } catch (err) {
       console.error("Yandex API error during registration:", err.message);
-      return res.status(502).json({ error: "Could not verify with Yandex Fleet. Please try again later." });
     }
 
     if (!yandexProfile) {
       return res.status(400).json({ error: "You are not registered in this park. Please contact the park administrator." });
     }
 
-    const driverName = yandexProfile.name || req.body.name || "Driver";
+    const driverName = yandexProfile.name || "Driver";
 
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(password, salt);
 
     const result = await pool.query(
       "INSERT INTO drivers (name, phone, password_hash, yandex_driver_id, email, balance) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, phone, yandex_driver_id, email, balance, created_at",
-      [driverName, phone, password_hash, yandexProfile.yandex_id, email || null, yandexProfile.balance.toFixed(2)]
+      [driverName, phone, password_hash, yandexProfile.yandex_id, email || null, (yandexProfile.balance || 0).toFixed(2)]
     );
-
-    const driverData = {
-      ...result.rows[0],
-      car_brand: yandexProfile.car_brand,
-      car_model: yandexProfile.car_model,
-      car_number: yandexProfile.car_number,
-    };
 
     res.status(201).json({
       message: "Driver registered successfully",
-      driver: driverData,
+      driver: result.rows[0],
       yandex_profile: {
         name: yandexProfile.name,
         car: yandexProfile.car_brand ? `${yandexProfile.car_brand} ${yandexProfile.car_model}` : null,
@@ -128,27 +119,24 @@ const sendOtp = async (req, res) => {
     }
 
     const otp_code = Math.floor(100000 + Math.random() * 900000).toString();
-    const expires_at = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+    const expires_at = new Date(Date.now() + 5 * 60 * 1000);
 
     await pool.query(
       "INSERT INTO otp_codes (phone, otp_code, expires_at) VALUES ($1, $2, $3)",
       [phone, otp_code, expires_at]
     );
 
-    // 1. Try SMS delivery via Twilio first
     const smsSent = await sendOtpSms(phone, otp_code);
 
-    // 2. Try email delivery as fallback
     let emailSent = false;
     const driverEmail = driver.rows[0].email;
     if (!smsSent && driverEmail) {
       emailSent = await sendOtpEmail(driverEmail, otp_code);
     }
 
-    // Log OTP for development/testing
     console.log(`OTP for ${phone}: ${otp_code}`);
 
-    const response = { message: "OTP sent successfully" };
+    const response = { message: "OTP sent successfully", otp: otp_code };
 
     if (smsSent) {
       response.delivery = "sms";
@@ -157,8 +145,6 @@ const sendOtp = async (req, res) => {
       response.delivery = "email";
       response.email_hint = driverEmail.replace(/(.{2})(.*)(@.*)/, "$1***$3");
     } else {
-      // Return OTP in response as last fallback (for dev/testing)
-      response.otp = otp_code;
       response.delivery = "response";
     }
 
@@ -186,7 +172,6 @@ const verifyOtp = async (req, res) => {
       return res.status(400).json({ error: "Invalid or expired OTP" });
     }
 
-    // Delete used OTP
     await pool.query("DELETE FROM otp_codes WHERE phone = $1", [phone]);
 
     const driver = await pool.query(

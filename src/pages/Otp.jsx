@@ -8,6 +8,7 @@ const Otp = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [delivery, setDelivery] = useState(localStorage.getItem('otpDelivery') || 'sms');
+  const [testOtp, setTestOtp] = useState(localStorage.getItem('testOtp') || '');
   const navigate = useNavigate();
 
   const phone = localStorage.getItem('phone');
@@ -43,6 +44,7 @@ const Otp = () => {
       const res = await verifyOtp(phone, otpCode);
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('driver', JSON.stringify(res.data.driver));
+      localStorage.removeItem('testOtp');
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.error || 'OTP verification failed');
@@ -55,6 +57,10 @@ const Otp = () => {
     try {
       const res = await sendOtp(phone);
       setDelivery(res.data.delivery || 'sms');
+      if (res.data.otp) {
+        setTestOtp(res.data.otp);
+        localStorage.setItem('testOtp', res.data.otp);
+      }
       setTimer(60);
       setError('');
     } catch (err) {
@@ -73,9 +79,16 @@ const Otp = () => {
 
         <h2 className="text-lg font-semibold text-[#0A0A0A] mb-2">Enter OTP Code</h2>
         <p className="text-[#6B6B6B] text-sm mb-2">We sent a 6-digit code to {phone}</p>
-        <p className="text-xs mb-6 font-medium" style={{ color: delivery === 'sms' ? '#16A34A' : delivery === 'email' ? '#2563EB' : '#D97706' }}>
-          {delivery === 'sms' ? 'Sent via SMS' : delivery === 'email' ? 'Sent to your email' : 'Check console for OTP (dev mode)'}
+        <p className="text-xs mb-4 font-medium" style={{ color: delivery === 'sms' ? '#16A34A' : delivery === 'email' ? '#2563EB' : '#D97706' }}>
+          {delivery === 'sms' ? 'Sent via SMS' : delivery === 'email' ? 'Sent to your email' : 'Dev mode — see OTP below'}
         </p>
+
+        {testOtp && (
+          <div className="bg-yellow-50 border border-yellow-300 rounded-xl px-4 py-3 mb-4 text-center">
+            <p className="text-yellow-800 text-xs font-medium mb-1">Test OTP</p>
+            <p className="text-yellow-900 text-2xl font-bold tracking-widest">{testOtp}</p>
+          </div>
+        )}
 
         {error && (
           <div className="bg-red-50 text-[#DC2626] text-sm px-4 py-3 rounded-xl mb-4 border border-red-100">
