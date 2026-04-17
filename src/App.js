@@ -15,6 +15,16 @@ import AdminWithdrawals from './pages/admin/AdminWithdrawals';
 import AdminParks from './pages/admin/AdminParks';
 import AdminBankAccounts from './pages/admin/AdminBankAccounts';
 
+const NotFound = () => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: "'Inter', sans-serif", backgroundColor: '#FAF9F6' }}>
+    <div style={{ textAlign: 'center' }}>
+      <h1 style={{ fontSize: '4rem', fontWeight: '800', color: '#0A0A0A', margin: '0' }}>404</h1>
+      <p style={{ color: '#6B6B6B', marginTop: '8px', marginBottom: '24px' }}>Page not found</p>
+      <a href="/" style={{ color: '#0A0A0A', fontWeight: '600', textDecoration: 'underline' }}>Go home</a>
+    </div>
+  </div>
+);
+
 function App() {
   return (
     <Router>
@@ -33,6 +43,7 @@ function App() {
         <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
         <Route path="/admin/parks" element={<AdminParks />} />
         <Route path="/admin/bank-accounts" element={<AdminBankAccounts />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );
