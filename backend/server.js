@@ -8,12 +8,22 @@ const { createDefaultAdmin } = require("./scripts/createAdmin");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  process.env.FRONTEND_URL,
-].filter(Boolean);
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',
+    'https://paypro-clone.vercel.app',
+    'https://paypro-clone-git-main-abdul-mueeds-projects-7f55b5c7.vercel.app',
+    'https://paypro-clone-8bcks96dg-abdul-mueeds-projects-7f55b5c7.vercel.app',
+    /\.vercel\.app$/,
+    process.env.FRONTEND_URL,
+  ].filter(Boolean),
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
 
-app.use(cors({ origin: allowedOrigins, credentials: true }));
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 
 // Routes
