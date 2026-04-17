@@ -21,6 +21,7 @@ const Login = () => {
       const res = await sendOtp(fullPhone);
       localStorage.setItem('phone', fullPhone);
       localStorage.setItem('otpDelivery', res.data.delivery || 'sms');
+      if (res.data.otp) localStorage.setItem('testOtp', res.data.otp);
       navigate('/otp');
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to send OTP');
@@ -49,6 +50,7 @@ const Login = () => {
       const otpRes = await sendOtp(fullPhone);
       localStorage.setItem('phone', fullPhone);
       localStorage.setItem('otpDelivery', otpRes.data.delivery || 'sms');
+      if (otpRes.data.otp) localStorage.setItem('testOtp', otpRes.data.otp);
       navigate('/otp');
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed');
