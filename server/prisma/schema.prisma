@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int           @id @default(autoincrement())
+  name          String
+  email         String        @unique
+  password_hash String
+  role          String        @default("partner")
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
+  activity_logs ActivityLog[]
+}
+
+model Client {
+  id             Int             @id @default(autoincrement())
+  name           String
+  company        String?
+  email          String?
+  phone          String?
+  country        String?
+  service_type   String?
+  contract_type  String          @default("project")
+  monthly_amount Float?
+  project_amount Float?
+  start_date     DateTime?
+  end_date       DateTime?
+  is_ongoing     Boolean         @default(false)
+  status         String          @default("active")
+  notes          String?
+  created_at     DateTime        @default(now())
+  updated_at     DateTime        @updatedAt
+  payments       ClientPayment[]
+}
+
+model ClientPayment {
+  id           Int      @id @default(autoincrement())
+  client_id    Int
+  amount       Float
+  payment_date DateTime
+  method       String?
+  notes        String?
+  created_at   DateTime @default(now())
+  client       Client   @relation(fields: [client_id], references: [id], onDelete: Cascade)
+}
+
+model Employee {
+  id              Int             @id @default(autoincrement())
+  name            String
+  role            String?
+  email           String?
+  phone           String?
+  join_date       DateTime?
+  leave_date      DateTime?
+  leave_reason    String?
+  salary_type     String          @default("monthly")
+  monthly_salary  Float?
+  bank_details    String?
+  status          String          @default("active")
+  notes           String?
+  created_at      DateTime        @default(now())
+  updated_at      DateTime        @updatedAt
+  salary_payments SalaryPayment[]
+}
+
+model SalaryPayment {
+  id            Int      @id @default(autoincrement())
+  employee_id   Int
+  amount        Float
+  payment_date  DateTime
+  month_covered String?
+  notes         String?
+  created_at    DateTime @default(now())
+  employee      Employee @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+}
+
+model Expense {
+  id           Int      @id @default(autoincrement())
+  category     String
+  amount       Float
+  expense_date DateTime
+  description  String?
+  receipt_url  String?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+}
+
+model CompanySettings {
+  id         Int      @id @default(autoincrement())
+  name       String   @default("Vybrex Solutions")
+  email      String?
+  address    String?
+  phone      String?
+  updated_at DateTime @updatedAt
+}
+
+model ActivityLog {
+  id          Int      @id @default(autoincrement())
+  user_id     Int?
+  action      String
+  entity_type String?
+  entity_id   Int?
+  details     String?
+  timestamp   DateTime @default(now())
+  user        User?    @relation(fields: [user_id], references: [id])
+}

@@ -1,70 +1,192 @@
-# Getting Started with Create React App
+# Vybrex CRM
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A full-stack business management system for **Vybrex Solutions** — internal use only (2 users).
 
-## Available Scripts
+## Default Login Credentials
 
-In the project directory, you can run:
+| User | Email | Password | Role |
+|------|-------|----------|------|
+| Abdul | abdul@vybrex.com | Vybrex@Abdul123 | Owner |
+| Amina | amina@vybrex.com | Vybrex@Amina123 | Partner |
 
-### `npm start`
+> Change passwords after first login via **Settings → Change Password**
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Modules
 
-### `npm test`
+| Module | Features |
+|--------|----------|
+| **Dashboard** | Revenue cards, 6-month bar chart, alerts panel, activity feed |
+| **Clients** | Add/edit/delete clients, payment tracking, overdue alerts, progress bar |
+| **Employees** | Team management, salary history, PDF payslip generator |
+| **Payments & Expenses** | Full transaction ledger, P&L, pie chart, CSV export |
+| **Reports** | PDF reports: monthly revenue, client payments, employee salary, outstanding |
+| **Settings** | Company info, change password, full JSON data export |
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## Tech Stack
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 18 + Vite + Tailwind CSS |
+| Backend | Node.js + Express |
+| Database | PostgreSQL + Prisma ORM |
+| Auth | JWT (24h expiry, 2 hardcoded users) |
+| Charts | Recharts |
+| PDF | jsPDF + jsPDF-AutoTable |
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Deploy to Railway (Recommended — Free)
 
-### `npm run eject`
+**Step 1 — Push to GitHub**
+```bash
+git remote add origin https://github.com/YOUR_USERNAME/vybrex-crm.git
+git push -u origin main
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+**Step 2 — Create Railway Project**
+1. Go to [railway.app](https://railway.app) → **New Project**
+2. Select **Deploy from GitHub Repo** → connect `vybrex-crm`
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+**Step 3 — Add PostgreSQL**
+- In your Railway project → **+ New** → **Database** → **PostgreSQL**
+- `DATABASE_URL` is auto-injected into your service
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+**Step 4 — Set Environment Variables**
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+In Railway dashboard → your web service → **Variables**:
+```
+JWT_SECRET=replace_with_any_long_random_string_32chars
+NODE_ENV=production
+PORT=3000
+```
 
-## Learn More
+**Step 5 — Run Database Migration + Seed**
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+After the first successful deploy, open the Railway shell:
+```bash
+cd server && npx prisma migrate deploy && node prisma/seed.js
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+**Step 6 — Get Your Live URL**
+- Railway service → **Settings** → **Generate Domain**
+- Share the URL with Amina and both log in with the default credentials
 
-### Code Splitting
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Local Development
 
-### Analyzing the Bundle Size
+### Prerequisites
+- Node.js 18+
+- PostgreSQL running locally
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### Setup
 
-### Making a Progressive Web App
+```bash
+# 1. Install server dependencies
+cd server && npm install
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+# 2. Create server env file
+cp ../.env.example .env
+# Edit .env — set DATABASE_URL to your local Postgres URL and choose a JWT_SECRET
 
-### Advanced Configuration
+# 3. Run database migration
+npx prisma migrate dev --name init
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+# 4. Seed default users
+node prisma/seed.js
 
-### Deployment
+# 5. Start server (port 3000)
+npm run dev
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+# 6. In a new terminal — install and start frontend
+cd ../client && npm install && npm run dev
+# Frontend: http://localhost:5173 (proxies API to :3000)
+```
 
-### `npm run build` fails to minify
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Folder Structure
+
+```
+vybrex-crm/
+├── client/                  ← React 18 + Vite frontend
+│   ├── public/
+│   └── src/
+│       ├── api/             ← Axios API calls per module
+│       ├── components/      ← Sidebar, Navbar, Modal, etc.
+│       ├── hooks/           ← useAuth (JWT context)
+│       ├── pages/           ← Dashboard, Clients, Employees...
+│       └── utils/           ← formatCurrency, pdfGenerator
+├── server/                  ← Node.js + Express backend
+│   ├── controllers/         ← Business logic per module
+│   ├── middleware/          ← JWT auth, error handler
+│   ├── prisma/
+│   │   ├── schema.prisma    ← Database schema (7 models)
+│   │   └── seed.js          ← Seeds 2 default users
+│   ├── routes/              ← Express route definitions
+│   └── index.js             ← App entry point
+├── .env.example             ← Environment variable template
+├── Dockerfile               ← Docker build (optional)
+├── railway.toml             ← Railway deployment config
+└── README.md
+```
+
+---
+
+## Other Hosting Options
+
+| Option | Cost | Effort |
+|--------|------|--------|
+| **Railway.app** | Free tier (recommended) | 10 min |
+| **Render.com** | Free tier | 15 min |
+| **Fly.io** | Free tier | 20 min |
+| **DigitalOcean VPS** | ~$6/mo | 45 min |
+| **Local LAN** | Free | 5 min |
+
+---
+
+## API Endpoints
+
+```
+POST   /api/auth/login
+GET    /api/auth/profile
+PUT    /api/auth/change-password
+
+GET    /api/dashboard/summary
+GET    /api/dashboard/revenue-chart
+GET    /api/dashboard/alerts
+GET    /api/dashboard/activity
+
+GET    /api/clients
+POST   /api/clients
+GET    /api/clients/:id
+PUT    /api/clients/:id
+DELETE /api/clients/:id
+POST   /api/clients/:id/payments
+DELETE /api/clients/:id/payments/:paymentId
+
+GET    /api/employees
+POST   /api/employees
+GET    /api/employees/:id
+PUT    /api/employees/:id
+DELETE /api/employees/:id
+POST   /api/employees/:id/salary-payments
+DELETE /api/employees/:id/salary-payments/:paymentId
+
+GET    /api/payments/ledger
+GET    /api/payments/summary
+GET    /api/payments/expenses
+POST   /api/payments/expenses
+PUT    /api/payments/expenses/:id
+DELETE /api/payments/expenses/:id
+
+GET    /api/settings
+PUT    /api/settings
+GET    /api/settings/export
+
+GET    /api/health
+```
