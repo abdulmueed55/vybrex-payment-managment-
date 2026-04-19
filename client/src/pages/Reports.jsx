@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { clientsApi, employeesApi, paymentsApi } from '../api';
+import { clientsApi, employeesApi, paymentsApi, settingsApi } from '../api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import {
   generateMonthlyRevenueReport,
@@ -14,6 +14,7 @@ export default function Reports() {
   const [clients, setClients] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [ledger, setLedger] = useState([]);
+  const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState('');
 
@@ -26,14 +27,16 @@ export default function Reports() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [c, e, l] = await Promise.all([
+        const [c, e, l, s] = await Promise.all([
           clientsApi.getAll(),
           employeesApi.getAll({ status: 'all' }),
           paymentsApi.getLedger(),
+          settingsApi.get(),
         ]);
         setClients(c.data);
         setEmployees(e.data);
         setLedger(l.data);
+        setCompany(s.data);
       } catch {
         toast.error('Failed to load data');
       } finally {
@@ -53,7 +56,7 @@ export default function Reports() {
         from: from.toISOString(), to: to.toISOString(), type: 'income',
       });
       const rows = data.map((t) => ({ ...t, client_name: t.description.replace('Payment from ', '') }));
-      generateMonthlyRevenueReport(rows, month);
+      generateMonthlyRevenueReport(rows, month, company);
       toast.success('Monthly revenue report downloaded');
     } catch {
       toast.error('Failed to generate report');
@@ -71,7 +74,7 @@ export default function Reports() {
       if (dateFrom) payments = payments.filter((p) => new Date(p.payment_date) >= new Date(dateFrom));
       if (dateTo) payments = payments.filter((p) => new Date(p.payment_date) <= new Date(dateTo));
       const dr = dateFrom && dateTo ? `${dateFrom} to ${dateTo}` : 'All Time';
-      generateClientPaymentReport(client, payments, dr);
+      generateClientPaymentReport(client, payments, dr, company);
       toast.success('Client payment report downloaded');
     } catch {
       toast.error('Failed to generate report');
@@ -89,7 +92,7 @@ export default function Reports() {
       if (dateFrom) payments = payments.filter((p) => new Date(p.payment_date) >= new Date(dateFrom));
       if (dateTo) payments = payments.filter((p) => new Date(p.payment_date) <= new Date(dateTo));
       const dr = dateFrom && dateTo ? `${dateFrom} to ${dateTo}` : 'All Time';
-      generateEmployeeSalaryReport(employee, payments, dr);
+      generateEmployeeSalaryReport(employee, payments, dr, company);
       toast.success('Employee salary report downloaded');
     } catch {
       toast.error('Failed to generate report');
@@ -102,7 +105,7 @@ export default function Reports() {
     setGenerating('outstanding');
     try {
       const { data } = await clientsApi.getAll({ status: 'active' });
-      generateOutstandingReport(data);
+      generateOutstandingReport(data, company);
       toast.success('Outstanding payments report downloaded');
     } catch {
       toast.error('Failed to generate report');
@@ -119,7 +122,7 @@ export default function Reports() {
       title: 'Monthly Revenue Report',
       description: 'All income for a specific month with totals',
       icon: '📈',
-      color: 'green',
+      color: 'emerald',
       fields: (
         <div>
           <label className="form-label">Select Month</label>
@@ -193,11 +196,11 @@ export default function Reports() {
       icon: '⏰',
       color: 'red',
       fields: (
-        <div className="p-4 bg-slate-800/50 rounded-lg">
-          <p className="text-sm text-slate-400">
+        <div className="p-4 bg-zinc-50 rounded-lg border border-zinc-200">
+          <p className="text-sm text-zinc-600">
             This report includes all active clients with outstanding balances as of today.
           </p>
-          <p className="text-xs text-slate-500 mt-2">
+          <p className="text-xs text-zinc-400 mt-2">
             Outstanding clients: {clients.filter((c) => c.remaining > 0 && c.status === 'active').length}
             {' · '}Total: {formatCurrency(clients.filter((c) => c.status === 'active').reduce((s, c) => s + (c.remaining || 0), 0))}
           </p>
@@ -208,10 +211,10 @@ export default function Reports() {
   ];
 
   const colorMap = {
-    green: 'bg-green-500/10 border-green-500/20 text-green-400',
-    blue: 'bg-blue-500/10 border-blue-500/20 text-blue-400',
-    purple: 'bg-purple-500/10 border-purple-500/20 text-purple-400',
-    red: 'bg-red-500/10 border-red-500/20 text-red-400',
+    emerald: 'bg-emerald-50 border-emerald-200 text-emerald-600',
+    blue: 'bg-blue-50 border-blue-200 text-blue-600',
+    purple: 'bg-purple-50 border-purple-200 text-purple-600',
+    red: 'bg-red-50 border-red-200 text-red-600',
   };
 
   return (
@@ -219,7 +222,7 @@ export default function Reports() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Reports</h1>
-          <p className="text-slate-500 text-sm mt-0.5">Generate PDF reports for your business</p>
+          <p className="text-zinc-500 text-sm mt-0.5">Generate PDF reports for your business</p>
         </div>
       </div>
 
@@ -231,8 +234,8 @@ export default function Reports() {
                 {card.icon}
               </div>
               <div>
-                <h3 className="font-semibold text-white">{card.title}</h3>
-                <p className="text-xs text-slate-500">{card.description}</p>
+                <h3 className="font-semibold text-zinc-900">{card.title}</h3>
+                <p className="text-xs text-zinc-500">{card.description}</p>
               </div>
             </div>
 

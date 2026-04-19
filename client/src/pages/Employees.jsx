@@ -56,7 +56,7 @@ function EmployeeForm({ initial, onSubmit, loading }) {
           </select>
         </div>
         <div>
-          <label className="form-label">Monthly Salary ($)</label>
+          <label className="form-label">Monthly Salary (Rs)</label>
           <input type="number" step="0.01" className="form-input" value={form.monthly_salary}
             onChange={(e) => set('monthly_salary', e.target.value)} />
         </div>
@@ -75,7 +75,7 @@ function EmployeeForm({ initial, onSubmit, loading }) {
       </div>
 
       {form.status === 'left' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-red-500/10 rounded-lg border border-red-500/20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-red-50 rounded-lg border border-red-200">
           <div>
             <label className="form-label">Leave Date</label>
             <input type="date" className="form-input" value={form.leave_date}
@@ -196,7 +196,7 @@ export default function Employees() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Employees</h1>
-          <p className="text-slate-500 text-sm mt-0.5">{employees.length} employees</p>
+          <p className="text-zinc-500 text-sm mt-0.5">{employees.length} employees</p>
         </div>
         <button
           onClick={() => { setEditEmp(null); setShowModal(true); }}
@@ -212,7 +212,7 @@ export default function Employees() {
             key={f}
             onClick={() => setFilter(f)}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors capitalize
-              ${filter === f ? 'bg-blue-600 text-white' : 'bg-slate-700/50 text-slate-400 hover:text-white'}`}
+              ${filter === f ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-500 hover:text-zinc-900'}`}
           >
             {f}
           </button>
@@ -233,34 +233,34 @@ export default function Employees() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-700/50">
+                <tr className="border-b border-zinc-200">
                   {['Name', 'Role', 'Join Date', 'Salary', 'Type', 'Total Paid', 'Status', 'Actions'].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    <th key={h} className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">
                       {h}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-700/50">
+              <tbody className="divide-y divide-zinc-200">
                 {employees.map((emp) => (
                   <tr key={emp.id} className="table-row-hover">
                     <td className="px-4 py-3">
                       <div
-                        className="font-medium text-white hover:text-blue-400 cursor-pointer transition-colors"
+                        className="font-medium text-zinc-900 hover:text-blue-600 cursor-pointer transition-colors"
                         onClick={() => navigate(`/employees/${emp.id}`)}
                       >
                         {emp.name}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-slate-400">{emp.role || '—'}</td>
-                    <td className="px-4 py-3 text-slate-400">{formatDate(emp.join_date)}</td>
-                    <td className="px-4 py-3 text-white">{emp.monthly_salary ? formatCurrency(emp.monthly_salary) : '—'}</td>
+                    <td className="px-4 py-3 text-zinc-500">{emp.role || '—'}</td>
+                    <td className="px-4 py-3 text-zinc-500">{formatDate(emp.join_date)}</td>
+                    <td className="px-4 py-3 text-zinc-900">{emp.monthly_salary ? formatCurrency(emp.monthly_salary) : '—'}</td>
                     <td className="px-4 py-3">
                       <span className="badge badge-blue capitalize">
                         {emp.salary_type?.replace('_', ' ')}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-green-400 font-medium">{formatCurrency(emp.total_paid)}</td>
+                    <td className="px-4 py-3 text-emerald-600 font-medium">{formatCurrency(emp.total_paid)}</td>
                     <td className="px-4 py-3">
                       <span className={`badge ${emp.status === 'active' ? 'badge-green' : 'badge-red'} capitalize`}>
                         {emp.status}
@@ -269,15 +269,15 @@ export default function Employees() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
                         <button onClick={() => openPay(emp)}
-                          className="px-2 py-1 text-xs bg-green-600/20 hover:bg-green-600/40 text-green-400 rounded transition-colors font-medium" title="Pay Salary">
+                          className="px-2 py-1 text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded transition-colors font-medium" title="Pay Salary">
                           💰 Pay
                         </button>
                         <button onClick={() => navigate(`/employees/${emp.id}`)}
-                          className="p-1.5 hover:bg-blue-500/20 text-slate-400 hover:text-blue-400 rounded transition-colors" title="View History">👁️</button>
+                          className="p-1.5 hover:bg-blue-50 text-zinc-400 hover:text-blue-600 rounded transition-colors" title="View History">👁️</button>
                         <button onClick={() => openEdit(emp)}
-                          className="p-1.5 hover:bg-slate-600 text-slate-400 hover:text-white rounded transition-colors" title="Edit">✏️</button>
+                          className="p-1.5 hover:bg-zinc-100 text-zinc-400 hover:text-zinc-900 rounded transition-colors" title="Edit">✏️</button>
                         <button onClick={() => setDeleteId(emp.id)}
-                          className="p-1.5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded transition-colors" title="Delete">🗑️</button>
+                          className="p-1.5 hover:bg-red-50 text-zinc-400 hover:text-red-600 rounded transition-colors" title="Delete">🗑️</button>
                       </div>
                     </td>
                   </tr>
@@ -298,14 +298,14 @@ export default function Employees() {
 
       <Modal isOpen={!!payTarget} onClose={() => setPayTarget(null)} title={`Pay Salary — ${payTarget?.name}`} size="sm">
         <form onSubmit={handleQuickPay} className="space-y-4">
-          <div className="bg-slate-800/50 rounded-lg p-3 text-sm">
-            <span className="text-slate-400">Monthly Salary: </span>
-            <span className="text-white font-semibold">{payTarget?.monthly_salary ? formatCurrency(payTarget.monthly_salary) : 'Not set'}</span>
-            <span className="text-slate-400 ml-4">Total Paid: </span>
-            <span className="text-green-400 font-semibold">{formatCurrency(payTarget?.total_paid || 0)}</span>
+          <div className="bg-zinc-50 rounded-lg p-3 text-sm border border-zinc-200">
+            <span className="text-zinc-500">Monthly Salary: </span>
+            <span className="text-zinc-900 font-semibold">{payTarget?.monthly_salary ? formatCurrency(payTarget.monthly_salary) : 'Not set'}</span>
+            <span className="text-zinc-500 ml-4">Total Paid: </span>
+            <span className="text-emerald-600 font-semibold">{formatCurrency(payTarget?.total_paid || 0)}</span>
           </div>
           <div>
-            <label className="form-label">Amount *</label>
+            <label className="form-label">Amount (Rs) *</label>
             <input type="number" step="0.01" min="0.01" required className="form-input"
               value={payForm.amount} onChange={(e) => setPayForm(f => ({ ...f, amount: e.target.value }))} />
           </div>

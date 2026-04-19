@@ -4,7 +4,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import toast from 'react-hot-toast';
 
 export default function Settings() {
-  const [settings, setSettings] = useState({ name: '', email: '', address: '', phone: '' });
+  const [settings, setSettings] = useState({ name: '', email: '', address: '', phone: '', logo_url: '' });
   const [loading, setLoading] = useState(true);
   const [savingSettings, setSavingSettings] = useState(false);
   const [passwords, setPasswords] = useState({ current_password: '', new_password: '', confirm_password: '' });
@@ -14,7 +14,13 @@ export default function Settings() {
     const load = async () => {
       try {
         const { data } = await settingsApi.get();
-        setSettings({ name: data.name || '', email: data.email || '', address: data.address || '', phone: data.phone || '' });
+        setSettings({
+          name: data.name || '',
+          email: data.email || '',
+          address: data.address || '',
+          phone: data.phone || '',
+          logo_url: data.logo_url || '',
+        });
       } catch {
         toast.error('Failed to load settings');
       } finally {
@@ -84,12 +90,12 @@ export default function Settings() {
     <div className="max-w-2xl space-y-6">
       <div>
         <h1 className="page-title">Settings</h1>
-        <p className="text-slate-500 text-sm mt-0.5">Manage your account and company information</p>
+        <p className="text-zinc-500 text-sm mt-0.5">Manage your account and company information</p>
       </div>
 
       {/* Company Settings */}
       <div className="card p-6">
-        <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
+        <h2 className="text-base font-semibold text-zinc-900 mb-4 flex items-center gap-2">
           <span>🏢</span> Company Information
         </h2>
         <form onSubmit={handleSaveSettings} className="space-y-4">
@@ -113,6 +119,21 @@ export default function Settings() {
             <input className="form-input" value={settings.phone}
               onChange={(e) => setSettings((s) => ({ ...s, phone: e.target.value }))} />
           </div>
+          <div>
+            <label className="form-label">Company Logo URL</label>
+            <input className="form-input" placeholder="https://example.com/logo.png"
+              value={settings.logo_url}
+              onChange={(e) => setSettings((s) => ({ ...s, logo_url: e.target.value }))} />
+            <p className="text-xs text-zinc-400 mt-1">
+              Upload your logo to a hosting service (e.g. imgbb.com) and paste the direct image URL here. Used on PDFs and payslips.
+            </p>
+            {settings.logo_url && (
+              <div className="mt-2 p-3 bg-zinc-50 rounded-lg border border-zinc-200 inline-flex items-center gap-3">
+                <img src={settings.logo_url} alt="Logo preview" className="h-10 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
+                <span className="text-xs text-zinc-500">Logo preview</span>
+              </div>
+            )}
+          </div>
           <div className="flex justify-end">
             <button type="submit" disabled={savingSettings} className="btn-primary flex items-center gap-2">
               {savingSettings && <div className="spinner w-4 h-4" />}
@@ -124,7 +145,7 @@ export default function Settings() {
 
       {/* Change Password */}
       <div className="card p-6">
-        <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
+        <h2 className="text-base font-semibold text-zinc-900 mb-4 flex items-center gap-2">
           <span>🔐</span> Change Password
         </h2>
         <form onSubmit={handleChangePassword} className="space-y-4">
@@ -144,7 +165,7 @@ export default function Settings() {
               onChange={(e) => setPasswords((p) => ({ ...p, confirm_password: e.target.value }))}
               style={{ borderColor: passwords.confirm_password && passwords.new_password !== passwords.confirm_password ? '#EF4444' : '' }} />
             {passwords.confirm_password && passwords.new_password !== passwords.confirm_password && (
-              <p className="text-xs text-red-400 mt-1">Passwords do not match</p>
+              <p className="text-xs text-red-600 mt-1">Passwords do not match</p>
             )}
           </div>
           <div className="flex justify-end">
@@ -158,10 +179,10 @@ export default function Settings() {
 
       {/* Data Export */}
       <div className="card p-6">
-        <h2 className="text-base font-semibold text-white mb-2 flex items-center gap-2">
+        <h2 className="text-base font-semibold text-zinc-900 mb-2 flex items-center gap-2">
           <span>📦</span> Data Export
         </h2>
-        <p className="text-slate-400 text-sm mb-4">
+        <p className="text-zinc-500 text-sm mb-4">
           Download a complete backup of all your data as a JSON file. This includes clients, employees, payments, and expenses.
         </p>
         <button onClick={handleExport} className="btn-secondary flex items-center gap-2">
@@ -171,25 +192,25 @@ export default function Settings() {
 
       {/* App Info */}
       <div className="card p-6">
-        <h2 className="text-base font-semibold text-white mb-3 flex items-center gap-2">
+        <h2 className="text-base font-semibold text-zinc-900 mb-3 flex items-center gap-2">
           <span>ℹ️</span> About
         </h2>
         <div className="space-y-2 text-sm">
           <div className="flex gap-3">
-            <span className="text-slate-500 w-28">Application</span>
-            <span className="text-white">Vybrex CRM</span>
+            <span className="text-zinc-500 w-28">Application</span>
+            <span className="text-zinc-900">Vybrex CRM</span>
           </div>
           <div className="flex gap-3">
-            <span className="text-slate-500 w-28">Version</span>
-            <span className="text-white">1.0.0</span>
+            <span className="text-zinc-500 w-28">Version</span>
+            <span className="text-zinc-900">1.0.0</span>
           </div>
           <div className="flex gap-3">
-            <span className="text-slate-500 w-28">Built For</span>
-            <span className="text-white">Vybrex Solutions — Internal Use Only</span>
+            <span className="text-zinc-500 w-28">Built For</span>
+            <span className="text-zinc-900">Vybrex Solutions — Internal Use Only</span>
           </div>
           <div className="flex gap-3">
-            <span className="text-slate-500 w-28">Users</span>
-            <span className="text-white">Abdul (Owner) · Amina (Partner)</span>
+            <span className="text-zinc-500 w-28">Users</span>
+            <span className="text-zinc-900">Abdul (Owner) · Amina (Owner)</span>
           </div>
         </div>
       </div>

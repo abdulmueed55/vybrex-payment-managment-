@@ -139,16 +139,16 @@ export default function Payments() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="stat-card">
-          <p className="text-xs text-slate-500 uppercase mb-1">Monthly Income</p>
-          <p className="text-2xl font-bold text-green-400">{formatCurrency(summary?.monthly_income)}</p>
+          <p className="text-xs text-zinc-500 uppercase mb-1">Monthly Income</p>
+          <p className="text-2xl font-bold text-emerald-600">{formatCurrency(summary?.monthly_income)}</p>
         </div>
         <div className="stat-card">
-          <p className="text-xs text-slate-500 uppercase mb-1">Monthly Expenses</p>
-          <p className="text-2xl font-bold text-red-400">{formatCurrency(summary?.monthly_expenses)}</p>
+          <p className="text-xs text-zinc-500 uppercase mb-1">Monthly Expenses</p>
+          <p className="text-2xl font-bold text-red-600">{formatCurrency(summary?.monthly_expenses)}</p>
         </div>
         <div className="stat-card">
-          <p className="text-xs text-slate-500 uppercase mb-1">Monthly P&L</p>
-          <p className={`text-2xl font-bold ${(summary?.monthly_profit || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+          <p className="text-xs text-zinc-500 uppercase mb-1">Monthly P&L</p>
+          <p className={`text-2xl font-bold ${(summary?.monthly_profit || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
             {formatCurrency(summary?.monthly_profit)}
           </p>
         </div>
@@ -159,7 +159,7 @@ export default function Payments() {
         {['ledger', 'expenses', 'analytics'].map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors capitalize
-              ${tab === t ? 'bg-blue-600 text-white' : 'bg-slate-700/50 text-slate-400 hover:text-white'}`}>
+              ${tab === t ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-500 hover:text-zinc-900'}`}>
             {t}
           </button>
         ))}
@@ -169,7 +169,7 @@ export default function Payments() {
       {tab === 'ledger' && (
         <div className="card">
           {/* Ledger Filters */}
-          <div className="p-4 border-b border-slate-700/50 flex flex-wrap gap-3">
+          <div className="p-4 border-b border-zinc-200 flex flex-wrap gap-3">
             <input type="date" className="form-input w-auto" value={filters.from}
               onChange={(e) => setFilters((f) => ({ ...f, from: e.target.value }))} />
             <input type="date" className="form-input w-auto" value={filters.to}
@@ -196,30 +196,30 @@ export default function Payments() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-700/50">
-                    <th className="px-4 py-3 text-left text-xs text-slate-500 uppercase">Date</th>
-                    <th className="px-4 py-3 text-left text-xs text-slate-500 uppercase">Type</th>
-                    <th className="px-4 py-3 text-left text-xs text-slate-500 uppercase">Description</th>
-                    <th className="px-4 py-3 text-left text-xs text-slate-500 uppercase">Category</th>
-                    <th className="px-4 py-3 text-right text-xs text-slate-500 uppercase">Amount</th>
-                    <th className="px-4 py-3 text-right text-xs text-slate-500 uppercase">Balance</th>
+                  <tr className="border-b border-zinc-200">
+                    <th className="px-4 py-3 text-left text-xs text-zinc-500 uppercase">Date</th>
+                    <th className="px-4 py-3 text-left text-xs text-zinc-500 uppercase">Type</th>
+                    <th className="px-4 py-3 text-left text-xs text-zinc-500 uppercase">Description</th>
+                    <th className="px-4 py-3 text-left text-xs text-zinc-500 uppercase">Category</th>
+                    <th className="px-4 py-3 text-right text-xs text-zinc-500 uppercase">Amount</th>
+                    <th className="px-4 py-3 text-right text-xs text-zinc-500 uppercase">Balance</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-700/50">
+                <tbody className="divide-y divide-zinc-200">
                   {ledger.map((t) => (
                     <tr key={t.id} className="table-row-hover">
-                      <td className="px-4 py-3 text-slate-400">{formatDate(t.date)}</td>
+                      <td className="px-4 py-3 text-zinc-500">{formatDate(t.date)}</td>
                       <td className="px-4 py-3">
                         <span className={`badge ${t.type === 'income' ? 'badge-green' : 'badge-red'} capitalize`}>
                           {t.type}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-white">{t.description}</td>
-                      <td className="px-4 py-3 text-slate-400">{t.category}</td>
-                      <td className={`px-4 py-3 text-right font-medium ${t.type === 'income' ? 'text-green-400' : 'text-red-400'}`}>
+                      <td className="px-4 py-3 text-zinc-900">{t.description}</td>
+                      <td className="px-4 py-3 text-zinc-500">{t.category}</td>
+                      <td className={`px-4 py-3 text-right font-medium ${t.type === 'income' ? 'text-emerald-600' : 'text-red-600'}`}>
                         {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
                       </td>
-                      <td className={`px-4 py-3 text-right font-medium ${t.running_balance >= 0 ? 'text-white' : 'text-red-400'}`}>
+                      <td className={`px-4 py-3 text-right font-medium ${t.running_balance >= 0 ? 'text-zinc-900' : 'text-red-600'}`}>
                         {formatCurrency(t.running_balance)}
                       </td>
                     </tr>
@@ -241,25 +241,25 @@ export default function Payments() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-700/50">
+                  <tr className="border-b border-zinc-200">
                     {['Date', 'Category', 'Description', 'Amount', 'Actions'].map((h) => (
-                      <th key={h} className="px-4 py-3 text-left text-xs text-slate-500 uppercase">{h}</th>
+                      <th key={h} className="px-4 py-3 text-left text-xs text-zinc-500 uppercase">{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-700/50">
+                <tbody className="divide-y divide-zinc-200">
                   {expenses.map((e) => (
                     <tr key={e.id} className="table-row-hover">
-                      <td className="px-4 py-3 text-slate-400">{formatDate(e.expense_date)}</td>
+                      <td className="px-4 py-3 text-zinc-500">{formatDate(e.expense_date)}</td>
                       <td className="px-4 py-3"><span className="badge badge-blue">{e.category}</span></td>
-                      <td className="px-4 py-3 text-white">{e.description || '—'}</td>
-                      <td className="px-4 py-3 text-red-400 font-medium">{formatCurrency(e.amount)}</td>
+                      <td className="px-4 py-3 text-zinc-900">{e.description || '—'}</td>
+                      <td className="px-4 py-3 text-red-600 font-medium">{formatCurrency(e.amount)}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
                           <button onClick={() => openEditExpense(e)}
-                            className="p-1.5 hover:bg-slate-600 text-slate-400 hover:text-white rounded transition-colors">✏️</button>
+                            className="p-1.5 hover:bg-zinc-100 text-zinc-400 hover:text-zinc-900 rounded transition-colors">✏️</button>
                           <button onClick={() => setDeleteId(e.id)}
-                            className="p-1.5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded transition-colors">🗑️</button>
+                            className="p-1.5 hover:bg-red-50 text-zinc-400 hover:text-red-600 rounded transition-colors">🗑️</button>
                         </div>
                       </td>
                     </tr>
@@ -275,9 +275,9 @@ export default function Payments() {
       {tab === 'analytics' && (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <div className="card p-5">
-            <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4">Expenses by Category</h3>
+            <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider mb-4">Expenses by Category</h3>
             {!summary?.expenses_by_category?.length ? (
-              <div className="text-center py-12 text-slate-500">No expense data</div>
+              <div className="text-center py-12 text-zinc-400">No expense data</div>
             ) : (
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
@@ -287,31 +287,31 @@ export default function Payments() {
                       <Cell key={index} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(v) => formatCurrency(v)} contentStyle={{ background: '#1E293B', border: '1px solid #334155', color: '#fff' }} />
+                  <Tooltip formatter={(v) => formatCurrency(v)} contentStyle={{ background: '#fff', border: '1px solid #E5E7EB', color: '#18181B' }} />
                 </PieChart>
               </ResponsiveContainer>
             )}
           </div>
 
           <div className="card p-5">
-            <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4">Top 5 Paying Clients</h3>
+            <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider mb-4">Top 5 Paying Clients</h3>
             {!summary?.top_clients?.length ? (
-              <div className="text-center py-12 text-slate-500">No client data</div>
+              <div className="text-center py-12 text-zinc-400">No client data</div>
             ) : (
               <div className="space-y-3">
                 {summary.top_clients.map((c, i) => (
                   <div key={i} className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-blue-600/20 flex items-center justify-center text-xs font-bold text-blue-400">
+                    <div className="w-6 h-6 rounded-full bg-zinc-900 flex items-center justify-center text-xs font-bold text-white">
                       {i + 1}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm text-white font-medium truncate">{c.name}</span>
-                        <span className="text-sm text-green-400 font-semibold ml-2">{formatCurrency(c.amount)}</span>
+                        <span className="text-sm text-zinc-900 font-medium truncate">{c.name}</span>
+                        <span className="text-sm text-emerald-600 font-semibold ml-2">{formatCurrency(c.amount)}</span>
                       </div>
-                      <div className="w-full h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                      <div className="w-full h-1.5 bg-zinc-200 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-blue-500 rounded-full"
+                          className="h-full bg-zinc-900 rounded-full"
                           style={{ width: `${(c.amount / summary.top_clients[0].amount) * 100}%` }}
                         />
                       </div>
@@ -336,7 +336,7 @@ export default function Payments() {
             </select>
           </div>
           <div>
-            <label className="form-label">Amount ($) *</label>
+            <label className="form-label">Amount (Rs) *</label>
             <input type="number" step="0.01" min="0.01" required className="form-input"
               value={expenseForm.amount}
               onChange={(e) => setExpenseForm((f) => ({ ...f, amount: e.target.value }))} />

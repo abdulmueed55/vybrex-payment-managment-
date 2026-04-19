@@ -37,7 +37,7 @@ function AppLayout() {
   const sidebarWidth = collapsed ? 'lg:pl-16' : 'lg:pl-64';
 
   return (
-    <div className="min-h-screen bg-[#080808]">
+    <div className="min-h-screen bg-[#F5F5F5]">
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       <div className={`transition-all duration-300 ${sidebarWidth}`}>
         <Navbar collapsed={collapsed} setCollapsed={setCollapsed} />

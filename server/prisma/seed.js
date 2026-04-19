@@ -20,7 +20,7 @@ async function main() {
       name: 'Abdul',
       email: 'abdul@vybrex.com',
       password_hash: abdulHash,
-      role: 'CEO',
+      role: 'owner',
     },
   });
 
@@ -29,7 +29,7 @@ async function main() {
       name: 'Amina',
       email: 'amina@vybrex.com',
       password_hash: aminaHash,
-      role: 'CEO',
+      role: 'owner',
     },
   });
 

@@ -78,12 +78,12 @@ export default function EmployeeDetail() {
   };
 
   if (loading) return <LoadingSpinner fullPage />;
-  if (!employee) return <div className="text-center py-20 text-slate-500">Employee not found</div>;
+  if (!employee) return <div className="text-center py-20 text-zinc-400">Employee not found</div>;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <button onClick={() => navigate('/employees')} className="text-slate-400 hover:text-white transition-colors">
+        <button onClick={() => navigate('/employees')} className="text-zinc-400 hover:text-zinc-900 transition-colors">
           ← Back
         </button>
       </div>
@@ -93,53 +93,53 @@ export default function EmployeeDetail() {
         <div className="card p-6 space-y-4">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+              <div className="w-14 h-14 rounded-full bg-zinc-900 flex items-center justify-center flex-shrink-0">
                 <span className="text-2xl font-bold text-white">{employee.name[0]}</span>
               </div>
               <div>
-                <h2 className="text-lg font-bold text-white">{employee.name}</h2>
-                <p className="text-slate-400 text-sm">{employee.role || '—'}</p>
+                <h2 className="text-lg font-bold text-zinc-900">{employee.name}</h2>
+                <p className="text-zinc-500 text-sm">{employee.role || '—'}</p>
               </div>
             </div>
           </div>
 
           {employee.status === 'left' && (
-            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
-              <p className="text-red-400 font-semibold text-sm">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-red-600 font-semibold text-sm">
                 Left on {formatDate(employee.leave_date)}
               </p>
               {employee.leave_reason && (
-                <p className="text-red-300 text-xs mt-1">{employee.leave_reason}</p>
+                <p className="text-red-500 text-xs mt-1">{employee.leave_reason}</p>
               )}
             </div>
           )}
 
           <div className="space-y-2 text-sm">
             {employee.email && (
-              <div className="flex gap-2"><span className="text-slate-500">Email</span><span className="text-white truncate">{employee.email}</span></div>
+              <div className="flex gap-2"><span className="text-zinc-500">Email</span><span className="text-zinc-900 truncate">{employee.email}</span></div>
             )}
             {employee.phone && (
-              <div className="flex gap-2"><span className="text-slate-500">Phone</span><span className="text-white">{employee.phone}</span></div>
+              <div className="flex gap-2"><span className="text-zinc-500">Phone</span><span className="text-zinc-900">{employee.phone}</span></div>
             )}
             <div className="flex gap-2">
-              <span className="text-slate-500">Join Date</span>
-              <span className="text-white">{formatDate(employee.join_date)}</span>
+              <span className="text-zinc-500">Join Date</span>
+              <span className="text-zinc-900">{formatDate(employee.join_date)}</span>
             </div>
             <div className="flex gap-2">
-              <span className="text-slate-500">Salary Type</span>
-              <span className="text-white capitalize">{employee.salary_type?.replace('_', ' ')}</span>
+              <span className="text-zinc-500">Salary Type</span>
+              <span className="text-zinc-900 capitalize">{employee.salary_type?.replace('_', ' ')}</span>
             </div>
             {employee.monthly_salary && (
               <div className="flex gap-2">
-                <span className="text-slate-500">Monthly Salary</span>
-                <span className="text-white">{formatCurrency(employee.monthly_salary)}</span>
+                <span className="text-zinc-500">Monthly Salary</span>
+                <span className="text-zinc-900">{formatCurrency(employee.monthly_salary)}</span>
               </div>
             )}
             {employee.bank_details && (
-              <div className="flex gap-2"><span className="text-slate-500">Bank</span><span className="text-white text-xs">{employee.bank_details}</span></div>
+              <div className="flex gap-2"><span className="text-zinc-500">Bank</span><span className="text-zinc-900 text-xs">{employee.bank_details}</span></div>
             )}
             <div className="flex gap-2">
-              <span className="text-slate-500">Status</span>
+              <span className="text-zinc-500">Status</span>
               <span className={`badge ${employee.status === 'active' ? 'badge-green' : 'badge-red'} capitalize`}>
                 {employee.status}
               </span>
@@ -147,9 +147,9 @@ export default function EmployeeDetail() {
           </div>
 
           {employee.notes && (
-            <div className="pt-3 border-t border-slate-700/50">
-              <p className="text-xs text-slate-500 mb-1">Notes</p>
-              <p className="text-sm text-slate-300">{employee.notes}</p>
+            <div className="pt-3 border-t border-zinc-200">
+              <p className="text-xs text-zinc-500 mb-1">Notes</p>
+              <p className="text-sm text-zinc-700">{employee.notes}</p>
             </div>
           )}
         </div>
@@ -158,12 +158,12 @@ export default function EmployeeDetail() {
         <div className="xl:col-span-2 space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="stat-card">
-              <p className="text-xs text-slate-500 uppercase mb-1">Total Paid (Lifetime)</p>
-              <p className="text-2xl font-bold text-green-400">{formatCurrency(employee.total_paid)}</p>
+              <p className="text-xs text-zinc-500 uppercase mb-1">Total Paid (Lifetime)</p>
+              <p className="text-2xl font-bold text-emerald-600">{formatCurrency(employee.total_paid)}</p>
             </div>
             <div className="stat-card">
-              <p className="text-xs text-slate-500 uppercase mb-1">Monthly Salary</p>
-              <p className="text-2xl font-bold text-white">
+              <p className="text-xs text-zinc-500 uppercase mb-1">Monthly Salary</p>
+              <p className="text-2xl font-bold text-zinc-900">
                 {employee.monthly_salary ? formatCurrency(employee.monthly_salary) : '—'}
               </p>
             </div>
@@ -171,8 +171,8 @@ export default function EmployeeDetail() {
 
           {/* Salary Payment History */}
           <div className="card">
-            <div className="flex items-center justify-between p-5 border-b border-slate-700/50">
-              <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Salary Payments</h3>
+            <div className="flex items-center justify-between p-5 border-b border-zinc-200">
+              <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider">Salary Payments</h3>
               <button onClick={() => { setPayForm((f) => ({ ...f, amount: employee.monthly_salary || '' })); setShowPayModal(true); }}
                 className="btn-primary text-xs px-3 py-2">
                 + Add Payment
@@ -182,38 +182,38 @@ export default function EmployeeDetail() {
             {employee.salary_payments.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-3xl mb-3 opacity-50">💸</div>
-                <p className="text-slate-500">No salary payments recorded yet</p>
+                <p className="text-zinc-400">No salary payments recorded yet</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-slate-700/50">
-                      <th className="px-4 py-3 text-left text-xs text-slate-500 uppercase">Payment Date</th>
-                      <th className="px-4 py-3 text-left text-xs text-slate-500 uppercase">Month Covered</th>
-                      <th className="px-4 py-3 text-left text-xs text-slate-500 uppercase">Amount</th>
-                      <th className="px-4 py-3 text-left text-xs text-slate-500 uppercase">Notes</th>
-                      <th className="px-4 py-3 text-left text-xs text-slate-500 uppercase">Actions</th>
+                    <tr className="border-b border-zinc-200">
+                      <th className="px-4 py-3 text-left text-xs text-zinc-500 uppercase">Payment Date</th>
+                      <th className="px-4 py-3 text-left text-xs text-zinc-500 uppercase">Month Covered</th>
+                      <th className="px-4 py-3 text-left text-xs text-zinc-500 uppercase">Amount</th>
+                      <th className="px-4 py-3 text-left text-xs text-zinc-500 uppercase">Notes</th>
+                      <th className="px-4 py-3 text-left text-xs text-zinc-500 uppercase">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-700/50">
+                  <tbody className="divide-y divide-zinc-200">
                     {employee.salary_payments.map((p) => (
                       <tr key={p.id} className="table-row-hover">
-                        <td className="px-4 py-3 text-slate-300">{formatDate(p.payment_date)}</td>
-                        <td className="px-4 py-3 text-slate-400">{p.month_covered || '—'}</td>
-                        <td className="px-4 py-3 text-green-400 font-semibold">{formatCurrency(p.amount)}</td>
-                        <td className="px-4 py-3 text-slate-400">{p.notes || '—'}</td>
+                        <td className="px-4 py-3 text-zinc-700">{formatDate(p.payment_date)}</td>
+                        <td className="px-4 py-3 text-zinc-500">{p.month_covered || '—'}</td>
+                        <td className="px-4 py-3 text-emerald-600 font-semibold">{formatCurrency(p.amount)}</td>
+                        <td className="px-4 py-3 text-zinc-500">{p.notes || '—'}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1">
                             <button
                               onClick={() => handleGeneratePayslip(p)}
-                              className="px-2 py-1 text-xs bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 rounded transition-colors"
+                              className="px-2 py-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 rounded transition-colors"
                               title="Generate Payslip"
                             >
                               📄 Payslip
                             </button>
                             <button onClick={() => setDeletePayId(p.id)}
-                              className="p-1 hover:bg-red-500/20 text-slate-600 hover:text-red-400 rounded transition-colors">🗑️</button>
+                              className="p-1 hover:bg-red-50 text-zinc-400 hover:text-red-600 rounded transition-colors">🗑️</button>
                           </div>
                         </td>
                       </tr>
@@ -230,7 +230,7 @@ export default function EmployeeDetail() {
       <Modal isOpen={showPayModal} onClose={() => setShowPayModal(false)} title="Add Salary Payment" size="sm">
         <form onSubmit={handleAddPayment} className="space-y-4">
           <div>
-            <label className="form-label">Amount ($) *</label>
+            <label className="form-label">Amount (Rs) *</label>
             <input type="number" step="0.01" min="0.01" required className="form-input"
               value={payForm.amount}
               onChange={(e) => setPayForm((f) => ({ ...f, amount: e.target.value }))} />

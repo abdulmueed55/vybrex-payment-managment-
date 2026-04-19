@@ -98,6 +98,7 @@ model CompanySettings {
   email      String?
   address    String?
   phone      String?
+  logo_url   String?
   updated_at DateTime @updatedAt
 }
 
