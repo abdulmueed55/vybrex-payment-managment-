@@ -56,4 +56,20 @@ const exportData = async (req, res) => {
   }
 };
 
-module.exports = { getSettings, updateSettings, exportData };
+const resetData = async (req, res) => {
+  try {
+    // Delete in order to respect foreign key constraints
+    await prisma.activityLog.deleteMany();
+    await prisma.clientPayment.deleteMany();
+    await prisma.client.deleteMany();
+    await prisma.salaryPayment.deleteMany();
+    await prisma.employee.deleteMany();
+    await prisma.expense.deleteMany();
+    res.json({ message: 'All data cleared. Users and settings preserved.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Reset failed' });
+  }
+};
+
+module.exports = { getSettings, updateSettings, exportData, resetData };

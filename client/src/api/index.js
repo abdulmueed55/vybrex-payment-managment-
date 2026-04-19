@@ -77,4 +77,5 @@ export const settingsApi = {
   get: () => api.get('/settings'),
   update: (data) => api.put('/settings', data),
   export: () => api.get('/settings/export'),
+  resetData: () => api.post('/settings/reset-data'),
 };

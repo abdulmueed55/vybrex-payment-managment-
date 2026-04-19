@@ -9,6 +9,8 @@ export default function Settings() {
   const [savingSettings, setSavingSettings] = useState(false);
   const [passwords, setPasswords] = useState({ current_password: '', new_password: '', confirm_password: '' });
   const [savingPass, setSavingPass] = useState(false);
+  const [resetConfirm, setResetConfirm] = useState('');
+  const [resetting, setResetting] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -65,6 +67,20 @@ export default function Settings() {
       toast.error(err.response?.data?.error || 'Failed to change password');
     } finally {
       setSavingPass(false);
+    }
+  };
+
+  const handleResetData = async () => {
+    if (resetConfirm !== 'RESET') { toast.error('Type RESET to confirm'); return; }
+    setResetting(true);
+    try {
+      await settingsApi.resetData();
+      toast.success('All data cleared successfully');
+      setResetConfirm('');
+    } catch {
+      toast.error('Reset failed');
+    } finally {
+      setResetting(false);
     }
   };
 
@@ -188,6 +204,33 @@ export default function Settings() {
         <button onClick={handleExport} className="btn-secondary flex items-center gap-2">
           <span>📥</span> Export All Data (JSON)
         </button>
+      </div>
+
+      {/* Danger Zone */}
+      <div className="card p-6 border-red-200">
+        <h2 className="text-base font-semibold text-red-600 mb-2 flex items-center gap-2">
+          <span>🗑️</span> Danger Zone — Reset All Data
+        </h2>
+        <p className="text-zinc-500 text-sm mb-4">
+          This will permanently delete <strong>all clients, employees, payments, expenses, and activity logs</strong>.
+          Your login accounts (Abdul &amp; Amina) and company settings will be kept.
+        </p>
+        <div className="flex gap-3 items-center">
+          <input
+            className="form-input max-w-xs"
+            placeholder='Type RESET to confirm'
+            value={resetConfirm}
+            onChange={(e) => setResetConfirm(e.target.value)}
+          />
+          <button
+            onClick={handleResetData}
+            disabled={resetting || resetConfirm !== 'RESET'}
+            className="btn-danger flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {resetting && <div className="spinner w-4 h-4 border-white border-t-transparent" />}
+            Reset All Data
+          </button>
+        </div>
       </div>
 
       {/* App Info */}
