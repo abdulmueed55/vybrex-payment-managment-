@@ -96,11 +96,7 @@ export default function Login() {
           </form>
 
           <div className="mt-6 p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
-            <p className="text-xs text-slate-500 text-center mb-2">Private system — authorized users only</p>
-            <div className="text-xs text-slate-600 text-center space-y-1">
-              <div>abdul@vybrex.com · Vybrex@Abdul123</div>
-              <div>amina@vybrex.com · Vybrex@Amina123</div>
-            </div>
+            <p className="text-xs text-slate-500 text-center">Private system — authorized users only</p>
           </div>
         </div>
 
