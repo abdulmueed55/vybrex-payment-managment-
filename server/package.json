@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "start:prod": "npx prisma migrate deploy && node index.js",
+    "start:prod": "npx prisma db push && node index.js",
     "dev": "nodemon index.js",
     "prisma:generate": "npx prisma generate",
     "prisma:migrate": "npx prisma migrate deploy",
