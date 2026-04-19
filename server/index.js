@@ -13,6 +13,11 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Health check — must be before other routes
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // API Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/dashboard', require('./routes/dashboard'));
@@ -20,11 +25,6 @@ app.use('/api/clients', require('./routes/clients'));
 app.use('/api/employees', require('./routes/employees'));
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/settings', require('./routes/settings'));
-
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', app: 'Vybrex CRM', version: '1.0.0' });
-});
 
 // Serve React frontend in production
 if (process.env.NODE_ENV === 'production') {

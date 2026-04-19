@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Vybrex CRM - Business Management System for Digital Agency",
   "scripts": {
-    "start:prod": "node server/index.js",
+    "start:prod": "cd server && npm run start:prod",
     "build": "cd client && npm install && npm run build",
     "dev:server": "cd server && npm run dev",
     "dev:client": "cd client && npm run dev",
