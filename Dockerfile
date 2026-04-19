@@ -24,4 +24,7 @@ RUN cd client && npm run build
 
 EXPOSE 3000
 
-CMD ["npm", "run", "start:prod"]
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
+CMD ["/app/start.sh"]
