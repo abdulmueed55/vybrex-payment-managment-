@@ -2,112 +2,85 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
-  background-color: #0F172A;
+  background-color: #080808;
   color: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
   margin: 0;
   padding: 0;
+  -webkit-font-smoothing: antialiased;
 }
 
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: #111111; }
+::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
 
-::-webkit-scrollbar-track {
-  background: #1E293B;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #475569;
-}
-
+/* ── Sidebar ── */
 .sidebar-link {
-  @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 text-slate-400 hover:text-white hover:bg-slate-700/50;
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 text-zinc-500 hover:text-white hover:bg-white/5;
+}
+.sidebar-link.active {
+  @apply text-white bg-white/10 border border-white/10;
 }
 
-.sidebar-link.active {
-  @apply text-white bg-blue-600/20 border border-blue-500/30;
+/* ── Cards ── */
+.card {
+  @apply bg-[#111111] rounded-xl border border-[#222222];
 }
 
 .stat-card {
-  @apply bg-[#1E293B] rounded-xl p-5 border border-slate-700/50;
+  @apply bg-[#111111] rounded-xl p-5 border border-[#222222];
 }
 
+/* ── Forms ── */
 .form-input {
-  @apply w-full bg-[#0F172A] border border-slate-600 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all;
+  @apply w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-3 py-2.5 text-sm text-white placeholder-zinc-600
+  focus:outline-none focus:ring-1 focus:ring-white/30 focus:border-white/30 transition-all;
 }
 
 .form-label {
-  @apply block text-sm font-medium text-slate-300 mb-1.5;
+  @apply block text-sm font-medium text-zinc-400 mb-1.5;
 }
 
+/* ── Buttons ── */
 .btn-primary {
-  @apply bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  @apply bg-white hover:bg-zinc-100 text-black px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors
+  disabled:opacity-40 disabled:cursor-not-allowed;
 }
 
 .btn-secondary {
-  @apply bg-slate-700 hover:bg-slate-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors;
+  @apply bg-[#1a1a1a] hover:bg-[#222222] border border-[#2a2a2a] text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors;
 }
 
 .btn-danger {
-  @apply bg-red-600/20 hover:bg-red-600/30 text-red-400 hover:text-red-300 border border-red-500/30 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors;
+  @apply bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors;
 }
 
+/* ── Badges — solid, vibrant ── */
 .badge {
-  @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold tracking-wide;
 }
 
-.badge-green {
-  @apply bg-green-500/20 text-green-400;
-}
+.badge-green  { @apply bg-emerald-500 text-white; }
+.badge-red    { @apply bg-red-600 text-white; }
+.badge-yellow { @apply bg-amber-500 text-black; }
+.badge-orange { @apply bg-orange-500 text-white; }
+.badge-blue   { @apply bg-blue-600 text-white; }
+.badge-gray   { @apply bg-zinc-700 text-zinc-200; }
 
-.badge-red {
-  @apply bg-red-500/20 text-red-400;
-}
-
-.badge-yellow {
-  @apply bg-yellow-500/20 text-yellow-400;
-}
-
-.badge-orange {
-  @apply bg-orange-500/20 text-orange-400;
-}
-
-.badge-blue {
-  @apply bg-blue-500/20 text-blue-400;
-}
-
-.badge-gray {
-  @apply bg-slate-600/50 text-slate-400;
-}
-
+/* ── Table ── */
 .table-row-hover {
-  @apply hover:bg-slate-700/30 transition-colors;
+  @apply hover:bg-white/[0.03] transition-colors;
 }
 
-.page-header {
-  @apply flex items-center justify-between mb-6;
-}
+/* ── Layout helpers ── */
+.page-header { @apply flex items-center justify-between mb-6; }
+.page-title  { @apply text-2xl font-bold text-white tracking-tight; }
 
-.page-title {
-  @apply text-2xl font-bold text-white;
-}
-
-.card {
-  @apply bg-[#1E293B] rounded-xl border border-slate-700/50;
-}
-
+/* ── Spinner ── */
 .spinner {
-  @apply animate-spin rounded-full border-2 border-slate-600 border-t-blue-500;
+  @apply animate-spin rounded-full border-2 border-zinc-700 border-t-white;
 }

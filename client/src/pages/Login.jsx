@@ -28,24 +28,24 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F172A] flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-[#080808] flex items-center justify-center p-4">
+      <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/25">
-            <span className="text-white font-bold text-2xl">V</span>
+          <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mx-auto mb-5">
+            <span className="text-black font-bold text-xl">V</span>
           </div>
-          <h1 className="text-3xl font-bold text-white">Vybrex CRM</h1>
-          <p className="text-slate-500 mt-1">Business Management System</p>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Vybrex CRM</h1>
+          <p className="text-zinc-600 text-sm mt-1">Business Management System</p>
         </div>
 
         {/* Card */}
-        <div className="bg-[#1E293B] rounded-2xl p-8 border border-slate-700/50 shadow-2xl">
-          <h2 className="text-xl font-semibold text-white mb-6">Sign in to your account</h2>
+        <div className="bg-[#111111] rounded-2xl p-7 border border-[#222222]">
+          <p className="text-sm text-zinc-500 mb-5">Sign in to your account</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="form-label">Email Address</label>
+              <label className="form-label">Email</label>
               <input
                 type="email"
                 value={email}
@@ -65,16 +65,16 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="form-input pr-10"
-                  placeholder="Enter password"
+                  placeholder="••••••••"
                   autoComplete="current-password"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPass((s) => !s)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-zinc-300 text-xs"
                 >
-                  {showPass ? '🙈' : '👁️'}
+                  {showPass ? 'HIDE' : 'SHOW'}
                 </button>
               </div>
             </div>
@@ -82,26 +82,18 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full flex items-center justify-center gap-2 mt-2"
+              className="btn-primary w-full flex items-center justify-center gap-2 mt-1"
             >
-              {loading ? (
-                <>
-                  <div className="spinner w-4 h-4" />
-                  <span>Signing in...</span>
-                </>
-              ) : (
-                'Sign In'
-              )}
+              {loading ? <><div className="spinner w-4 h-4" /><span>Signing in...</span></> : 'Sign In →'}
             </button>
           </form>
-
-          <div className="mt-6 p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
-            <p className="text-xs text-slate-500 text-center">Private system — authorized users only</p>
-          </div>
         </div>
 
-        <p className="text-center text-xs text-slate-600 mt-6">
-          © {new Date().getFullYear()} Vybrex Solutions. All rights reserved.
+        <p className="text-center text-xs text-zinc-700 mt-5">
+          Private system — authorized users only
+        </p>
+        <p className="text-center text-xs text-zinc-800 mt-1">
+          © {new Date().getFullYear()} Vybrex Solutions
         </p>
       </div>
     </div>
