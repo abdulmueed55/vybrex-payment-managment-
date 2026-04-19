@@ -6,5 +6,8 @@ echo "Syncing database schema..."
 cd /app/server
 ./node_modules/.bin/prisma db push --accept-data-loss 2>&1 || echo "Warning: DB push failed, starting anyway"
 
+echo "Seeding default users..."
+node /app/server/prisma/seed.js 2>&1 || echo "Warning: Seed skipped or already done"
+
 echo "Starting server..."
 exec node /app/server/index.js
