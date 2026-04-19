@@ -48,10 +48,9 @@ const getEmployee = async (req, res) => {
 const createEmployee = async (req, res) => {
   try {
     const data = { ...req.body };
-    if (data.join_date) data.join_date = new Date(data.join_date);
-    if (data.leave_date) data.leave_date = new Date(data.leave_date);
-    else data.leave_date = null;
-    if (data.monthly_salary) data.monthly_salary = parseFloat(data.monthly_salary);
+    data.join_date = data.join_date ? new Date(data.join_date) : null;
+    data.leave_date = data.leave_date ? new Date(data.leave_date) : null;
+    data.monthly_salary = data.monthly_salary ? parseFloat(data.monthly_salary) : null;
 
     const employee = await prisma.employee.create({ data });
     await logActivity(req.user.id, `Added employee: ${employee.name}`, 'employee', employee.id, null);

@@ -72,10 +72,10 @@ const getClient = async (req, res) => {
 const createClient = async (req, res) => {
   try {
     const data = { ...req.body };
-    if (data.start_date) data.start_date = new Date(data.start_date);
-    if (data.end_date) data.end_date = new Date(data.end_date);
-    if (data.monthly_amount) data.monthly_amount = parseFloat(data.monthly_amount);
-    if (data.project_amount) data.project_amount = parseFloat(data.project_amount);
+    data.start_date = data.start_date ? new Date(data.start_date) : null;
+    data.end_date = data.end_date ? new Date(data.end_date) : null;
+    data.monthly_amount = data.monthly_amount ? parseFloat(data.monthly_amount) : null;
+    data.project_amount = data.project_amount ? parseFloat(data.project_amount) : null;
     data.is_ongoing = data.is_ongoing === true || data.is_ongoing === 'true';
 
     const client = await prisma.client.create({ data });
