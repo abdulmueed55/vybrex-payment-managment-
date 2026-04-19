@@ -18,6 +18,11 @@ const getLedger = async (req, res) => {
       where: { expense_date: { gte: fromDate, lte: toDate } },
     });
 
+    const salaryPayments = await prisma.salaryPayment.findMany({
+      where: { payment_date: { gte: fromDate, lte: toDate } },
+      include: { employee: { select: { name: true } } },
+    });
+
     const transactions = [];
 
     if (!type || type === 'all' || type === 'income') {
@@ -47,6 +52,21 @@ const getLedger = async (req, res) => {
           });
         }
       });
+
+      // Salary payments count as expenses — only shown when no specific category filter
+      if (!category || category === 'all') {
+        salaryPayments.forEach((p) => {
+          transactions.push({
+            id: `sal_${p.id}`,
+            date: p.payment_date,
+            type: 'expense',
+            description: `Salary — ${p.employee.name}`,
+            category: 'Salary',
+            amount: p.amount,
+            notes: p.notes,
+          });
+        });
+      }
     }
 
     transactions.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -70,28 +90,36 @@ const getSummary = async (req, res) => {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
-    const monthIncome = await prisma.clientPayment.aggregate({
-      where: { payment_date: { gte: startOfMonth, lte: endOfMonth } },
-      _sum: { amount: true },
-    });
+    const [monthIncome, monthExpenses, monthSalaries, expensesByCategory, topClients] = await Promise.all([
+      prisma.clientPayment.aggregate({
+        where: { payment_date: { gte: startOfMonth, lte: endOfMonth } },
+        _sum: { amount: true },
+      }),
+      prisma.expense.aggregate({
+        where: { expense_date: { gte: startOfMonth, lte: endOfMonth } },
+        _sum: { amount: true },
+      }),
+      prisma.salaryPayment.aggregate({
+        where: { payment_date: { gte: startOfMonth, lte: endOfMonth } },
+        _sum: { amount: true },
+      }),
+      prisma.expense.groupBy({
+        by: ['category'],
+        where: { expense_date: { gte: startOfMonth, lte: endOfMonth } },
+        _sum: { amount: true },
+      }),
+      prisma.clientPayment.groupBy({
+        by: ['client_id'],
+        _sum: { amount: true },
+        orderBy: { _sum: { amount: 'desc' } },
+        take: 5,
+      }),
+    ]);
 
-    const monthExpenses = await prisma.expense.aggregate({
-      where: { expense_date: { gte: startOfMonth, lte: endOfMonth } },
-      _sum: { amount: true },
-    });
-
-    const expensesByCategory = await prisma.expense.groupBy({
-      by: ['category'],
-      where: { expense_date: { gte: startOfMonth, lte: endOfMonth } },
-      _sum: { amount: true },
-    });
-
-    const topClients = await prisma.clientPayment.groupBy({
-      by: ['client_id'],
-      _sum: { amount: true },
-      orderBy: { _sum: { amount: 'desc' } },
-      take: 5,
-    });
+    const income = monthIncome._sum.amount || 0;
+    const expenses = monthExpenses._sum.amount || 0;
+    const salaries = monthSalaries._sum.amount || 0;
+    const totalExpenses = expenses + salaries;
 
     const topClientsWithNames = await Promise.all(
       topClients.map(async (tc) => {
@@ -100,11 +128,16 @@ const getSummary = async (req, res) => {
       })
     );
 
+    const expensesList = expensesByCategory.map((e) => ({ name: e.category, value: e._sum.amount }));
+    if (salaries > 0) {
+      expensesList.push({ name: 'Salary', value: salaries });
+    }
+
     res.json({
-      monthly_income: monthIncome._sum.amount || 0,
-      monthly_expenses: monthExpenses._sum.amount || 0,
-      monthly_profit: (monthIncome._sum.amount || 0) - (monthExpenses._sum.amount || 0),
-      expenses_by_category: expensesByCategory.map((e) => ({ name: e.category, value: e._sum.amount })),
+      monthly_income: income,
+      monthly_expenses: totalExpenses,
+      monthly_profit: income - totalExpenses,
+      expenses_by_category: expensesList,
       top_clients: topClientsWithNames,
     });
   } catch (err) {

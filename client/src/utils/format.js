@@ -1,4 +1,4 @@
-export const formatCurrency = (amount, currency = 'USD') => {
+export const formatCurrency = (amount, currency = 'PKR') => {
   if (amount === null || amount === undefined) return currency === 'PKR' ? 'Rs 0' : '$0';
   if (currency === 'PKR') {
     return 'Rs ' + new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);

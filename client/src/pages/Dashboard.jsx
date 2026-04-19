@@ -113,7 +113,7 @@ export default function Dashboard() {
                 <YAxis
                   stroke="#9CA3AF"
                   tick={{ fill: '#9CA3AF', fontSize: 11 }}
-                  tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                  tickFormatter={(v) => `Rs ${(v / 1000).toFixed(0)}k`}
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="revenue" fill="#18181B" radius={[4, 4, 0, 0]} />
