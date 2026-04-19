@@ -183,6 +183,9 @@ export default function Clients() {
   const [saving, setSaving] = useState(false);
   const [sortField, setSortField] = useState('name');
   const [sortDir, setSortDir] = useState('asc');
+  const [payClient, setPayClient] = useState(null);
+  const [clientPayForm, setClientPayForm] = useState({ amount: '', payment_date: new Date().toISOString().split('T')[0], method: '', notes: '' });
+  const [payingClient, setPayingClient] = useState(false);
   const navigate = useNavigate();
 
   const load = async () => {
@@ -242,6 +245,19 @@ export default function Clients() {
       toast.error('Delete failed');
     }
     setDeleteId(null);
+  };
+
+  const handleQuickClientPay = async (e) => {
+    e.preventDefault();
+    if (!clientPayForm.amount || parseFloat(clientPayForm.amount) <= 0) { toast.error('Amount required'); return; }
+    setPayingClient(true);
+    try {
+      await clientsApi.addPayment(payClient.id, clientPayForm);
+      toast.success(`Payment recorded for ${payClient.name}`);
+      setPayClient(null);
+      load();
+    } catch { toast.error('Payment failed'); }
+    finally { setPayingClient(false); }
   };
 
   const openEdit = (client) => {
@@ -387,20 +403,23 @@ export default function Clients() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
                         <button
+                          onClick={() => { setPayClient(client); setClientPayForm({ amount: '', payment_date: new Date().toISOString().split('T')[0], method: '', notes: '' }); }}
+                          className="px-2 py-1 text-xs bg-green-600/20 hover:bg-green-600/40 text-green-400 rounded transition-colors font-medium"
+                          title="Add Payment">
+                          💰 Pay
+                        </button>
+                        <button
                           onClick={() => navigate(`/clients/${client.id}`)}
                           className="p-1.5 hover:bg-blue-500/20 text-slate-400 hover:text-blue-400 rounded transition-colors"
-                          title="View"
-                        >👁️</button>
+                          title="View History">👁️</button>
                         <button
                           onClick={() => openEdit(client)}
                           className="p-1.5 hover:bg-slate-600 text-slate-400 hover:text-white rounded transition-colors"
-                          title="Edit"
-                        >✏️</button>
+                          title="Edit">✏️</button>
                         <button
                           onClick={() => setDeleteId(client.id)}
                           className="p-1.5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded transition-colors"
-                          title="Delete"
-                        >🗑️</button>
+                          title="Delete">🗑️</button>
                       </div>
                     </td>
                   </tr>
@@ -431,6 +450,41 @@ export default function Clients() {
         title="Delete Client"
         message="Are you sure you want to delete this client? All payment records will be permanently deleted."
       />
+
+      <Modal isOpen={!!payClient} onClose={() => setPayClient(null)} title={`Add Payment — ${payClient?.name}`} size="sm">
+        <form onSubmit={handleQuickClientPay} className="space-y-4">
+          <div className="bg-slate-800/50 rounded-lg p-3 text-sm grid grid-cols-3 gap-2">
+            <div><p className="text-slate-500 text-xs">Total</p><p className="text-white font-semibold">{formatCurrency(payClient?.total_amount || 0)}</p></div>
+            <div><p className="text-slate-500 text-xs">Paid</p><p className="text-green-400 font-semibold">{formatCurrency(payClient?.total_paid || 0)}</p></div>
+            <div><p className="text-slate-500 text-xs">Remaining</p><p className="text-yellow-400 font-semibold">{formatCurrency(payClient?.remaining || 0)}</p></div>
+          </div>
+          <div>
+            <label className="form-label">Amount Received *</label>
+            <input type="number" step="0.01" min="0.01" required className="form-input"
+              value={clientPayForm.amount} onChange={(e) => setClientPayForm(f => ({ ...f, amount: e.target.value }))} />
+          </div>
+          <div>
+            <label className="form-label">Payment Date *</label>
+            <input type="date" required className="form-input"
+              value={clientPayForm.payment_date} onChange={(e) => setClientPayForm(f => ({ ...f, payment_date: e.target.value }))} />
+          </div>
+          <div>
+            <label className="form-label">Payment Method</label>
+            <input className="form-input" placeholder="e.g. Bank Transfer, Cash"
+              value={clientPayForm.method} onChange={(e) => setClientPayForm(f => ({ ...f, method: e.target.value }))} />
+          </div>
+          <div>
+            <label className="form-label">Notes</label>
+            <input className="form-input" value={clientPayForm.notes} onChange={(e) => setClientPayForm(f => ({ ...f, notes: e.target.value }))} />
+          </div>
+          <div className="flex gap-3 justify-end pt-1">
+            <button type="button" onClick={() => setPayClient(null)} className="btn-secondary">Cancel</button>
+            <button type="submit" disabled={payingClient} className="btn-primary flex items-center gap-2">
+              {payingClient && <div className="spinner w-4 h-4" />} Record Payment
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

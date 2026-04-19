@@ -113,6 +113,9 @@ export default function Employees() {
   const [editEmp, setEditEmp] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [payTarget, setPayTarget] = useState(null);
+  const [payForm, setPayForm] = useState({ amount: '', payment_date: new Date().toISOString().split('T')[0], month_covered: '', notes: '' });
+  const [payingSalary, setPayingSalary] = useState(false);
   const navigate = useNavigate();
 
   const load = async () => {
@@ -158,6 +161,24 @@ export default function Employees() {
       toast.error('Delete failed');
     }
     setDeleteId(null);
+  };
+
+  const openPay = (emp) => {
+    setPayTarget(emp);
+    setPayForm({ amount: emp.monthly_salary || '', payment_date: new Date().toISOString().split('T')[0], month_covered: '', notes: '' });
+  };
+
+  const handleQuickPay = async (e) => {
+    e.preventDefault();
+    if (!payForm.amount || parseFloat(payForm.amount) <= 0) { toast.error('Amount required'); return; }
+    setPayingSalary(true);
+    try {
+      await employeesApi.addSalaryPayment(payTarget.id, payForm);
+      toast.success(`Salary paid to ${payTarget.name}`);
+      setPayTarget(null);
+      load();
+    } catch { toast.error('Payment failed'); }
+    finally { setPayingSalary(false); }
   };
 
   const openEdit = (emp) => {
@@ -247,8 +268,12 @@ export default function Employees() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
+                        <button onClick={() => openPay(emp)}
+                          className="px-2 py-1 text-xs bg-green-600/20 hover:bg-green-600/40 text-green-400 rounded transition-colors font-medium" title="Pay Salary">
+                          💰 Pay
+                        </button>
                         <button onClick={() => navigate(`/employees/${emp.id}`)}
-                          className="p-1.5 hover:bg-blue-500/20 text-slate-400 hover:text-blue-400 rounded transition-colors" title="View">👁️</button>
+                          className="p-1.5 hover:bg-blue-500/20 text-slate-400 hover:text-blue-400 rounded transition-colors" title="View History">👁️</button>
                         <button onClick={() => openEdit(emp)}
                           className="p-1.5 hover:bg-slate-600 text-slate-400 hover:text-white rounded transition-colors" title="Edit">✏️</button>
                         <button onClick={() => setDeleteId(emp.id)}
@@ -270,6 +295,42 @@ export default function Employees() {
 
       <ConfirmDialog isOpen={!!deleteId} onClose={() => setDeleteId(null)} onConfirm={handleDelete}
         title="Delete Employee" message="Delete this employee and all their salary records?" />
+
+      <Modal isOpen={!!payTarget} onClose={() => setPayTarget(null)} title={`Pay Salary — ${payTarget?.name}`} size="sm">
+        <form onSubmit={handleQuickPay} className="space-y-4">
+          <div className="bg-slate-800/50 rounded-lg p-3 text-sm">
+            <span className="text-slate-400">Monthly Salary: </span>
+            <span className="text-white font-semibold">{payTarget?.monthly_salary ? formatCurrency(payTarget.monthly_salary) : 'Not set'}</span>
+            <span className="text-slate-400 ml-4">Total Paid: </span>
+            <span className="text-green-400 font-semibold">{formatCurrency(payTarget?.total_paid || 0)}</span>
+          </div>
+          <div>
+            <label className="form-label">Amount *</label>
+            <input type="number" step="0.01" min="0.01" required className="form-input"
+              value={payForm.amount} onChange={(e) => setPayForm(f => ({ ...f, amount: e.target.value }))} />
+          </div>
+          <div>
+            <label className="form-label">Payment Date *</label>
+            <input type="date" required className="form-input"
+              value={payForm.payment_date} onChange={(e) => setPayForm(f => ({ ...f, payment_date: e.target.value }))} />
+          </div>
+          <div>
+            <label className="form-label">Month Covered (e.g. April 2026)</label>
+            <input className="form-input" placeholder="e.g. April 2026"
+              value={payForm.month_covered} onChange={(e) => setPayForm(f => ({ ...f, month_covered: e.target.value }))} />
+          </div>
+          <div>
+            <label className="form-label">Notes</label>
+            <input className="form-input" value={payForm.notes} onChange={(e) => setPayForm(f => ({ ...f, notes: e.target.value }))} />
+          </div>
+          <div className="flex gap-3 justify-end pt-1">
+            <button type="button" onClick={() => setPayTarget(null)} className="btn-secondary">Cancel</button>
+            <button type="submit" disabled={payingSalary} className="btn-primary flex items-center gap-2">
+              {payingSalary && <div className="spinner w-4 h-4" />} Confirm Payment
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }
