@@ -4,6 +4,8 @@ const cors = require('cors');
 const path = require('path');
 const errorHandler = require('./middleware/errorHandler');
 
+const fs = require('fs');
+
 const app = express();
 
 app.use(cors({
@@ -26,18 +28,18 @@ app.use('/api/employees', require('./routes/employees'));
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/settings', require('./routes/settings'));
 
-// Serve React frontend in production
-if (process.env.NODE_ENV === 'production') {
-  const distPath = path.join(__dirname, '../client/dist');
+// Serve React frontend
+const distPath = path.join(__dirname, '../client/dist');
+if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
   app.get('*', (req, res) => {
     const indexFile = path.join(distPath, 'index.html');
     res.sendFile(indexFile, (err) => {
-      if (err) {
-        res.status(200).send(`<h1>Vybrex CRM</h1><p>Loading...</p>`);
-      }
+      if (err) res.status(200).send('<h1>Vybrex CRM - Starting...</h1>');
     });
   });
+} else {
+  app.get('/', (req, res) => res.send('<h1>Vybrex CRM API Running</h1><p>Frontend build not found.</p>'));
 }
 
 app.use(errorHandler);
