@@ -28,20 +28,23 @@ app.use('/api/settings', require('./routes/settings'));
 
 // Serve React frontend in production
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/dist')));
+  const distPath = path.join(__dirname, '../client/dist');
+  app.use(express.static(distPath));
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+    const indexFile = path.join(distPath, 'index.html');
+    res.sendFile(indexFile, (err) => {
+      if (err) {
+        res.status(200).send(`<h1>Vybrex CRM</h1><p>Loading...</p>`);
+      }
+    });
   });
 }
 
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Vybrex CRM Server running on port ${PORT}`);
-  if (process.env.NODE_ENV !== 'production') {
-    console.log(`API: http://localhost:${PORT}/api`);
-  }
 });
 
 module.exports = app;

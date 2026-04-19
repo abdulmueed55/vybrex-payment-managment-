@@ -3,24 +3,25 @@ RUN apk add --no-cache openssl openssl-dev libc6-compat
 
 WORKDIR /app
 
-# Copy root package.json
-COPY package.json ./
-
-# Copy and install server dependencies
+# Install server dependencies
 COPY server/package.json ./server/
 RUN cd server && npm install
 
-# Copy and build client
+# Install client dependencies (force dev deps for build tools)
 COPY client/package.json ./client/
-RUN cd client && npm install
+RUN cd client && npm install --include=dev
 
+# Copy all source files
 COPY . .
 
 # Generate Prisma client
 RUN cd server && npx prisma generate
 
-# Build frontend
+# Build React frontend
 RUN cd client && npm run build
+
+# Verify build output exists
+RUN ls -la client/dist/
 
 EXPOSE 3000
 
